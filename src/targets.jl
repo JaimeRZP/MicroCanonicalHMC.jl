@@ -97,25 +97,38 @@ mutable struct CMBLensingTarget <: Target
     prior_draw::Function
 end
 
+function to_from_vec(Ω)
+    to_vec(Ω) = Ω[:]
+    from_vec(vec) = first(promote(vec, Ω))
+    return to_vec, from_vec
+end
+
 CMBLensingTarget(prob; kwargs...) = begin
     d = length(prob.Ωstart)
     Λmass = real(prob.Λmass)
     sqrtΛmass = sqrt(Λmass)
     inv_sqrtΛmass = pinv(sqrtΛmass)
+    to_vec, from_vec = to_from_vec(prob.Ωstart)
+
+    # Note on convetion:
+    # x--> FieldTuple
+    # xt --> Vector
 
     function transform(x)
         xt = CMBLensing.LenseBasis(sqrtΛmass * x)
-        return xt
+        return to_vec(xt)
     end
 
     function inv_transform(xt)
-        x = CMBLensing.LenseBasis(inv_sqrtΛmass * xt)
+        x = from_vec(xt)
+        x = CMBLensing.LenseBasis(inv_sqrtΛmass * x)
         return x
     end
 
     function nlogp(xt)
         x = inv_transform(xt)
-        return -1.0 .* prob(x)
+        nl = -prob(x)
+        return to_vec(nl)
     end
 
     function grad_nlogp(xt)
@@ -129,7 +142,7 @@ CMBLensingTarget(prob; kwargs...) = begin
     function prior_draw(key)
         x = prob.Ωstart
         xt = transform(x)
-        return CMBLensing.LenseBasis(xt)
+        return xt
     end
 
     CMBLensingTarget(d,
