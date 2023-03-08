@@ -97,9 +97,10 @@ mutable struct CMBLensingTarget <: Target
     prior_draw::Function
 end
 
-function to_from_vec(Ω)
-    to_vec(Ω) = Ω[:]
-    from_vec(vec) = first(promote(vec, Ω))
+function to_from_vec(Ω_template)
+    Ω_template₀ = LenseBasis(Ω_template)
+    to_vec(ft) = LenseBasis(ft)[:]
+    from_vec(vec) = identity.(first(promote(vec, Ω_template₀)))
     return to_vec, from_vec
 end
 
@@ -127,12 +128,13 @@ CMBLensingTarget(prob; kwargs...) = begin
 
     function nlogp(xt)
         x = inv_transform(xt)
-        nl = -prob(x)
-        return to_vec(nl)
+        return -prob(x)
     end
 
     function grad_nlogp(xt)
-        return CMBLensing.LenseBasis(Zygote.gradient(nlogp, xt)[1])
+        x = inv_transform(xt)
+        g = -CMBLensing.LenseBasis(Zygote.gradient(prob, x)[1])
+        return to_vec(g)
     end
     
     function nlogp_grad_nlogp(xt)

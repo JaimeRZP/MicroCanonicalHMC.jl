@@ -1,17 +1,17 @@
 mutable struct Hyperparameters
-    eps::Float64
-    L::Float64
-    nu::Float64
-    lambda_c::Float64
+    eps::Float32
+    L::Float32
+    nu::Float32
+    lambda_c::Float32
     sigma::AbstractVector
 end
 
 Hyperparameters(;kwargs...) = begin
-   eps = get(kwargs, :eps, 0.0)
-   L = get(kwargs, :L, 0.0)
-   nu = get(kwargs, :nu, 0.0)
-   lambda_c = get(kwargs, :lambda_c, 0.1931833275037836)
-   sigma = get(kwargs, :sigma, [0.0])
+   eps = get(kwargs, :eps, Float32(0.0))
+   L = get(kwargs, :L, Float32(0.0))
+   nu = get(kwargs, :nu, Float32(0.0))
+   lambda_c = get(kwargs, :lambda_c, Float32(0.1931833275037836))
+   sigma = get(kwargs, :sigma, Float32.([0.0]))
    Hyperparameters(eps, L, nu, lambda_c, sigma)
 end
 
@@ -22,6 +22,9 @@ mutable struct Settings
     tune_samples::Int
     tune_maxiter::Int
     integrator::String
+    init_eps
+    init_L
+    init_sigma
 end
 
 Settings(;kwargs...) = begin
@@ -31,11 +34,14 @@ Settings(;kwargs...) = begin
     varE_wanted = get(kwargs, :varE_wanted, 0.2)
     burn_in = get(kwargs, :burn_in, 0)
     tune_samples = get(kwargs, :tune_samples, 1000)
-    tune_maxiter = get(kwargs, :tune_maxiter, 10)
+    tune_maxiter = get(kwargs, :tune_maxiter, 100)
     integrator = get(kwargs, :integrator, "LF")
+    init_eps = get(kwargs, :init_eps, nothing)
+    init_L = get(kwargs, :init_L, nothing)
+    init_sigma = get(kwargs, :init_sigma, nothing)
     Settings(key,
              varE_wanted, burn_in, tune_samples, tune_maxiter,
-             integrator)
+             integrator, init_eps, init_L, init_sigma)
 end
 
 struct Sampler
@@ -72,7 +78,7 @@ function Random_unit_vector(sampler::Sampler, target::Target; normalize=true)
 end
 
 function Random_unit_vector(key, d; normalize = true)
-    u = randn(key, d)
+    u = Float32.(randn(d))
     if normalize
         u ./= sqrt(sum(u.^2))
     end
@@ -150,11 +156,7 @@ function Init(sampler::Sampler, target::Target; kwargs...)
     u = Random_unit_vector(sampler, target) #random initial direction
 
     state = (x, u, l, g, 0.0)
-
-    sample = Vector{Any}(undef,3)
-    sample[1] = target.inv_transform(x)
-    sample[2] = 0.0
-    sample[3] = -l
+    sample = [x; 0.0; l]
 
     return state, sample
 end
@@ -165,12 +167,7 @@ function Step(sampler::Sampler, target::Target, state; kwargs...)
     step = Dynamics(sampler, target, state)
     xx, uu, ll, gg, dEE = step
 
-    sample = Vector{Any}(undef,3)
-    sample[1] = target.inv_transform(xx)
-    sample[2] =  dE + dEE
-    sample[3] = -ll
-
-    return step, sample
+    return step, [xx; dE + dEE; -ll]
 end
 
 
