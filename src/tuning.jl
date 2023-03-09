@@ -1,3 +1,47 @@
+function tune_what(sampler::Sampler, target::Target)
+    tune_sigma, tune_eps, tune_L = false, false, false
+
+    if sampler.hyperparameters.sigma == [0.0]
+        @info "Tuning sigma ⏳"
+        tune_sigma = true
+        if sampler.settings.init_sigma == nothing
+            init_sigma = ones(target.d)
+        else
+            init_sigma = sampler.settings.init_sigma
+        end
+        sampler.hyperparameters.sigma = init_sigma
+    else
+        @info "Using given sigma ✅"
+    end
+
+    if sampler.hyperparameters.eps == 0.0
+        @info "Tuning eps ⏳"
+        tune_eps = true
+        if sampler.settings.init_eps == nothing
+            init_eps = 0.5
+        else
+            init_eps = sampler.settings.init_eps
+        end
+        sampler.hyperparameters.eps = init_eps
+    else
+        @info "Using given eps ✅"
+    end
+
+    if sampler.hyperparameters.L == 0.0
+        @info "Tuning L ⏳"
+        tune_L = true
+        if sampler.settings.init_sigma == nothing
+            init_L = sqrt(target.d)
+        else
+            init_L = sampler.settings.init_L
+        end
+        sampler.hyperparameters.L = init_L
+    else
+        @info "Using given L ✅"
+    end
+
+    return tune_sigma, tune_eps, tune_L
+end
 
 function ess_corr(target::Target, samples)
     param_names = target.vsyms
@@ -49,7 +93,7 @@ function tune_sigma!(sampler::Sampler, target::Target; kwargs...)
     @info string("Found sigma: ", sampler.hyperparameters.sigma, " ✅")
 end
 
-function tune_eps!(sampler::Sampler, target::Target, init; kwargs...)
+function tune_eps!(sampler::Sampler, target::Target, init; α=1, kwargs...)
     dialog = get(kwargs, :dialog, false)
     sett = sampler.settings
     eps = sampler.hyperparameters.eps
@@ -74,10 +118,11 @@ function tune_eps!(sampler::Sampler, target::Target, init; kwargs...)
 
     ### update the hyperparameters ###
     if no_divergences
-        success = varE < varE_wanted #we are done
+        success = (abs(varE-varE_wanted)/varE_wanted) < 0.05
         if !success
-            #eps_new = eps*(varE_wanted/varE)^0.25 #assume var[E] ~ eps^4
-            sampler.hyperparameters.eps = 0.5 * eps
+
+            new_log_eps = log(sampler.hyperparameters.eps)-α*(varE-varE_wanted)
+            sampler.hyperparameters.eps = exp(new_log_eps)
         else
             @info string("Found eps: ", sampler.hyperparameters.eps, " ✅")
         end
@@ -103,28 +148,25 @@ end
 
 function tune_hyperparameters(sampler::Sampler, target::Target, init; kwargs...)
     sett = sampler.settings
-
     ### debugging tool ###
     dialog = get(kwargs, :dialog, false)
 
-    # Init guess
-    if sampler.hyperparameters.sigma == [0.0]
-        @info "Tuning sigma ⏳"
+    tune_sigma, tune_eps, tune_L = tune_what(sampler, target)
+
+    if tune_sigma
         tune_sigma!(sampler, target; kwargs...)
     end
 
-    if sampler.hyperparameters.eps == 0.0
-        @info "Tuning eps ⏳"
-        sampler.hyperparameters.eps = 0.5
+    if tune_eps
         for i in 1:sett.tune_maxiter
-            if tune_eps!(sampler, target, init; kwargs...)
+            α = exp.(-(i .- 1)/20)
+            if tune_eps!(sampler, target, init; α=α, kwargs...)
                 break
             end
         end
     end
 
-    if sampler.hyperparameters.L == 0.0
-        @info "Tuning L ⏳"
+    if tune_L
         tune_L!(sampler, target, init; kwargs...)
     end
 

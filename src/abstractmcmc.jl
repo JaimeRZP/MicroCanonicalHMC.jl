@@ -191,9 +191,6 @@ function AbstractMCMC.sample(model::DynamicPPL.Model,
     if resume_from === nothing
         target = TuringTarget(model)
         init = Init(sampler, target; kwargs...)
-        state, sample = init
-        # We will have to parallelize this later
-        tune_hyperparameters(sampler, target, state; kwargs...)
 
         if nchains < Threads.nthreads()
             @info string("number of chains: ",
@@ -206,9 +203,7 @@ function AbstractMCMC.sample(model::DynamicPPL.Model,
             @info string("number of chains: ",
                          nchains,
                          " requesteed larger than number of threads: ",
-                         Threads.nthreads(),  ".",
-                         " Setting number of chains to number of threads.")
-            nchains = Threads.nthreads()
+                         Threads.nthreads(),  ".")
         end
 
         interval = 1:nchains
@@ -216,6 +211,14 @@ function AbstractMCMC.sample(model::DynamicPPL.Model,
         targets = [deepcopy(target) for _ in interval]
         samplers = [deepcopy(sampler) for _ in interval]
         inits = [Init(sampler, target) for _ in interval]
+
+        Threads.@threads for i in interval
+            _sampler = samplers[i]
+            _target = targets[i]
+            _init = inits[i]
+            state, sample = _init
+            tune_hyperparameters(_sampler, _target, state; kwargs...)
+        end
 
     else
         @info "Starting from previous run"

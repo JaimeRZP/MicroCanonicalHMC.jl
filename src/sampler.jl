@@ -22,6 +22,9 @@ mutable struct Settings
     tune_samples::Int
     tune_maxiter::Int
     integrator::String
+    init_eps
+    init_L
+    init_sigma
 end
 
 Settings(;kwargs...) = begin
@@ -31,11 +34,14 @@ Settings(;kwargs...) = begin
     varE_wanted = get(kwargs, :varE_wanted, 0.2)
     burn_in = get(kwargs, :burn_in, 0)
     tune_samples = get(kwargs, :tune_samples, 1000)
-    tune_maxiter = get(kwargs, :tune_maxiter, 10)
+    tune_maxiter = get(kwargs, :tune_maxiter, 100)
     integrator = get(kwargs, :integrator, "LF")
+    init_eps = get(kwargs, :init_eps, nothing)
+    init_L = get(kwargs, :init_L, nothing)
+    init_sigma = get(kwargs, :init_sigma, nothing)
     Settings(key,
              varE_wanted, burn_in, tune_samples, tune_maxiter,
-             integrator)
+             integrator, init_eps, init_L, init_sigma)
 end
 
 struct Sampler <: AbstractMCMC.AbstractSampler
@@ -159,15 +165,16 @@ function Step(sampler::Sampler, target::Target, state; kwargs...)
     x, u, l, g, dE = state
     step = Dynamics(sampler, target, state)
     xx, uu, ll, gg, dEE = step
-    return step, [target.inv_transform(xx); dE + dEE; ll]
+    return step, [target.inv_transform(xx); dE + dEE; -ll]
 end
 
 
-function Sample(sampler::Sampler, target::Target,
-                num_steps::Int; kwargs...)
+function Sample(sampler::Sampler, target::Target, num_steps::Int;
+                file_name="samples", progress=true, kwargs...)
     """Args:
            num_steps: number of integration steps to take.
-           x_initial: initial condition for x (an array of shape (target dimension, )). It can also be 'prior' in which case it is drawn from the prior distribution (self.Target.prior_draw).
+           x_initial: initial condition for x (an array of shape (target dimension, )).
+                      It can also be 'prior' in which case it is drawn from the prior distribution (self.Target.prior_draw).
            random_key: jax radnom seed, e.g. jax.random.PRNGKey(42).
         Returns:
             samples (shape = (num_steps, self.Target.d))
@@ -182,9 +189,13 @@ function Sample(sampler::Sampler, target::Target,
 
     samples = []
     push!(samples, sample)
-    for i in 1:num_steps
-        state, sample = Step(sampler, target, state; kwargs...)
-        push!(samples, sample)
+    io = open(string(file_name, ".txt"), "w") do io
+        println(io, sample)
+        for i in 1:num_steps
+            state, sample = Step(sampler, target, state; kwargs...)
+            push!(samples, sample)
+            println(io, sample)
+        end
     end
 
     return samples

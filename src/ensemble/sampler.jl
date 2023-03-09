@@ -6,6 +6,9 @@ mutable struct EnsembleSettings
     VarE_maxiter::Int
     num_energy_points::Int
     integrator::String
+    init_eps
+    init_L
+    init_sigma
 end
 
 EnsembleSettings(;kwargs...) = begin
@@ -15,12 +18,15 @@ EnsembleSettings(;kwargs...) = begin
     nchains = get(kwargs, :nchains, 1)
     loss_wanted = get(kwargs, :loss_wanted, 1.0)
     varE_wanted = get(kwargs, :varE_wanted, 0.01)
-    VarE_maxiter = get(kwargs, :varE_maxiter, 10)
+    VarE_maxiter = get(kwargs, :varE_maxiter, 100)
     num_energy_points = get(kwargs, :num_energy_points, 20)
     integrator = get(kwargs, :integrator, "LF")
+    init_eps = get(kwargs, :init_eps, nothing)
+    init_L = get(kwargs, :init_L, nothing)
+    init_sigma = get(kwargs, :init_sigma, nothing)
     EnsembleSettings(nchains, key,
              loss_wanted, varE_wanted, VarE_maxiter, num_energy_points,
-             integrator)
+             integrator, init_eps, init_L, init_sigma)
 end
 
 struct EnsembleSampler <: AbstractMCMC.AbstractSampler
