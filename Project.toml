@@ -1,6 +1,6 @@
 name = "MicroCanonicalHMC"
 uuid = "234d2aa0-2291-45f7-9047-6fa6f316b0a8"
-authors = ["Jaime Ruiz Zapatero <jaimerz011235813@gmail.com>", "Marco Bonici <bonici.marco@gmail.com>"]
+authors = ["Jaime Ruiz Zapatero <jaimerz011235813@gmail.com>", "Marco Bonici", "Marius Millea"]
 version = "0.1.0"
 
 [deps]
