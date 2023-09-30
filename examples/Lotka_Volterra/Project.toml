@@ -1,0 +1,4 @@
+[deps]
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+MicroCanonicalHMC = "234d2aa0-2291-45f7-9047-6fa6f316b0a8"
+Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
