@@ -56,7 +56,7 @@ samples_mchmc = Sample(spl, target, 100_000)
 samples_hmc = sample(funnel_model, NUTS(5_000, 0.95), 50_000; progress=true, save_state=true)
 ```
 
-![](https://raw.githubusercontent.com/JaimeRZP/MicroCanonicalHMC.jl/master/docs/src/assets/Neal_funnel_comp.png)
+![](https://raw.githubusercontent.com/JaimeRZP/MicroCanonicalHMC.jl/master/docs/src/assets/mchmc_comp.png)
 
 - NUTS effective samples per second --> ~630
 - MCHMC effective samples per second --> ~1340
