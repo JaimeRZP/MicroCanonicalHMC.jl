@@ -1,20 +1,19 @@
-# Gaussian Process.jl
+# MicroCanonicalHMC.jl
 
-## Kernels
+## Sampler
 ```@docs
-GaussianProcess.const_cov_fn 
-GaussianProcess.lin_cov_fn
-GaussianProcess.noise_cov_fn 
-GaussianProcess.ratquad_cov_fn
-GaussianProcess.sin_cov_fn 
-GaussianProcess.exp_cov_fn 
-GaussianProcess.sqexp_cov_fn
+MicroCanonicalHMC.MCHMC
+MicroCanonicalHMC.Step
+MicroCanonicalHMC.Sample
 ```
 
-## GP's
+## Hamiltonian
 ```@docs
-GaussianProcess.marginal_lkl
-GaussianProcess.latent_GP
-GaussianProcess.conditional
-GaussianProcess.posterior_predict
+MicroCanonicalHMC.Hamiltonian
+```
+
+## Integrators
+```@docs
+MicroCanonicalHMC.Leapfrog
+MicroCanonicalHMC.Minimal_norm
 ```

@@ -1,2 +1,2 @@
-# GaussianProcess.jl
-A minimal Gaussian process package in Julia.
+# MicroCanonicalHMC.jl
+An immlementation of Micro-Canonical Hamiltonian Monte Carlo in Julia
