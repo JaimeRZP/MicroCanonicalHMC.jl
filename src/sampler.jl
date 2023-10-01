@@ -49,7 +49,17 @@ struct MCHMCSampler <: AbstractMCMC.AbstractSampler
     hamiltonian_dynamics::Function
 end
 
-function MCHMC(nadapt, TEV; kwargs...)
+
+"""
+    MCHMC(
+        nadapt::Int,
+        TEV::Real;
+        kwargs...
+    )
+
+Constructor for the MicroCanonical HMC sampler
+"""
+function MCHMC(nadapt::Int, TEV::Real; kwargs...)
     """the MCHMC (q = 0 Hamiltonian) sampler"""
     sett = Settings(; nadapt = nadapt, TEV = TEV, kwargs...)
     hyperparameters = Hyperparameters(; kwargs...)
@@ -214,6 +224,20 @@ function Sample(
     )
 end
 
+"""
+    sample(
+        rng::AbstractRNG,
+        sampler::MCHMCSampler,
+        target::Target,
+        n::Int;
+        init_params = nothing,
+        fol_name = ".",
+        file_name = "samples",
+        progress = true,
+        kwargs...
+    )
+Sampling routine
+"""
 function Sample(
     rng::AbstractRNG,
     sampler::MCHMCSampler,
@@ -225,15 +249,6 @@ function Sample(
     progress = true,
     kwargs...,
 )
-    """Args:
-           n: number of integration steps to take.
-           x_initial: initial condition for x (an array of shape (target dimension, )).
-                      It can also be 'prior' in which case it is drawn from the prior distribution (self.Target.prior_draw).
-           random_key: jax radnom seed, e.g. jax.random.PRNGKey(42).
-        Returns:
-            samples (shape = (n, self.Target.d))
-    """
-
     io = open(joinpath(fol_name, "VarNames.txt"), "w") do io
         println(io, string(target.vsyms))
     end
