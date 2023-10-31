@@ -25,6 +25,9 @@ d = 21
     z ~ MvNormal(zeros(d-1), exp(θ)*I)
     x ~ MvNormal(z, I)
 end
+
+(; x) = rand(funnel() | (θ=0,))
+funel_model = funnel() | (; x);
 ```
 
 ### Define the Sampler
@@ -40,13 +43,13 @@ The first two entries mean that the step size and the trajectory length will be 
 ### Start Sampling
 
 ```julia
-samples_mchmc = sample(model, externalsampler(spl), 100_000)
+samples_mchmc = sample(funel_model, externalsampler(spl), 100_000)
 ```
 
 ### Compare to NUTS
 
 ```julia
-samples_hmc = sample(funnel_model, NUTS(5_000, 0.95), 50_000; progress=true, save_state=true)
+samples_hmc = sample(funnel_model, NUTS(5_000, 0.95), 50_000)
 ```
 
 ![](https://raw.githubusercontent.com/JaimeRZP/MicroCanonicalHMC.jl/master/docs/src/assets/mchmc_comp.png)
