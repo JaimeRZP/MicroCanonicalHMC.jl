@@ -26,13 +26,6 @@ d = 21
     x ~ MvNormal(z, I)
 end
 ```
-### Define the Target
-Wrap the Turing model inside a MicrocanonicalHMC.jl target:
-
-```julia
-target = TuringTarget(funnel_model)
-```
-
 
 ### Define the Sampler
 
@@ -47,7 +40,7 @@ The first two entries mean that the step size and the trajectory length will be 
 ### Start Sampling
 
 ```julia
-samples_mchmc = Sample(spl, target, 100_000)
+samples_mchmc = sample(model, externalsampler(spl), 100_000)
 ```
 
 ### Compare to NUTS
