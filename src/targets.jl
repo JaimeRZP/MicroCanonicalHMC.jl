@@ -1,5 +1,14 @@
 NoTransform(x) = x
 
+mutable struct Target
+    d::Int
+    vsyms::Any
+    h::Hamiltonian
+    transform::Function
+    inv_transform::Function
+    prior_draw::Function
+end
+
 #=
 mutable struct TuringTarget <: Target
     model::DynamicPPL.Model
@@ -79,15 +88,6 @@ TuringTarget(model; kwargs...) = begin
 end
 =#
 
-mutable struct CustomTarget <: Target
-    d::Int
-    vsyms::Any
-    h::Hamiltonian
-    transform::Function
-    inv_transform::Function
-    prior_draw::Function
-end
-
 CustomTarget(nlogp, grad_nlogp, priors; kwargs...) = begin
     d = length(priors)
     vsyms = [DynamicPPL.VarName(Symbol("d_", i)) for i = 1:d]
@@ -98,16 +98,7 @@ CustomTarget(nlogp, grad_nlogp, priors; kwargs...) = begin
         return xt
     end
     hamiltonian = Hamiltonian(nlogp, grad_nlogp)
-    CustomTarget(d, hamiltonian, NoTransform, NoTransform, prior_draw)
-end
-
-mutable struct GaussianTarget <: Target
-    d::Int
-    vsyms::Any
-    h::Hamiltonian
-    transform::Function
-    inv_transform::Function
-    prior_draw::Function
+    Target(d, hamiltonian, NoTransform, NoTransform, prior_draw)
 end
 
 GaussianTarget(_mean::AbstractVector, _cov::AbstractMatrix) = begin
@@ -124,16 +115,7 @@ GaussianTarget(_mean::AbstractVector, _cov::AbstractMatrix) = begin
         return xt
     end
 
-    GaussianTarget(d, vsyms, hamiltonian, NoTransform, NoTransform, prior_draw)
-end
-
-mutable struct RosenbrockTarget <: Target
-    d::Int
-    vsyms::Any
-    h::Hamiltonian
-    transform::Function
-    inv_transform::Function
-    prior_draw::Function
+    Target(d, vsyms, hamiltonian, NoTransform, NoTransform, prior_draw)
 end
 
 RosenbrockTarget(a, b; kwargs...) = begin
@@ -159,5 +141,5 @@ RosenbrockTarget(a, b; kwargs...) = begin
         return x
     end
 
-    RosenbrockTarget(d, vsyms, hamiltonian, NoTransform, NoTransform, prior_draw)
+    Target(d, vsyms, hamiltonian, NoTransform, NoTransform, prior_draw)
 end
