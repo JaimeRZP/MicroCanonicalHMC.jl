@@ -58,9 +58,30 @@ samples_hmc = sample(funnel_model, NUTS(5_000, 0.95), 50_000)
 - MCHMC effective samples per second --> ~1340
 - Ensemble MCHMC effective samples per second per worker --> ~957
 
-## Using MicroCanonicalHMC.jl with AbstractMCMC.jl
+## Using your own likelihood function
 
+### Define a Target
+Start by defining your likelihood function and its gradient
 ```julia
-samples_hmc = sample(funnel_model, spl, 100_000; progress=true, save_state=true)
+d=2
+function ℓπ(x; a=a, b=b)
+    x1 = x[1:Int(d / 2)]
+    x2 = x[Int(d / 2)+1:end]
+    m = @.((a - x1)^2 + b * (x2 - x1^2)^2)
+    return -0.5 * sum(m)
+end
+function ∂lπ∂θ(x)
+    return ℓπ(x), ForwardDiff.gradient(ℓπ, x)
+end
+θ_start = rand(MvNormal(zeros(d), ones(d)))
 ```
-Note that we are passing the `Turing` model directly instead of the `Target` object.
+Wrap it into a `CustomTarget`
+```julia
+target = CustomTarget(ℓπ, ∂lπ∂θ, θ_start)
+```
+### Start Sampling
+```julia
+samples_mchmc = Sample(spl, target, 500_000; dialog=true);
+```
+![](https://raw.githubusercontent.com/JaimeRZP/MicroCanonicalHMC.jl/master/docs/src/assets/mchmc_comp_2.png)
+
