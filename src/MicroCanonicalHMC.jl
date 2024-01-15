@@ -17,10 +17,4 @@ include("integrators.jl")
 include("tuning.jl")
 include("abstractmcmc.jl")
 
-include("ensemble/targets.jl")
-include("ensemble/sampler.jl")
-include("ensemble/integrators.jl")
-include("ensemble/tuning.jl")
-include("ensemble/abstractmcmc.jl")
-
 end
