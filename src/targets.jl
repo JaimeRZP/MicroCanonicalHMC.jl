@@ -94,7 +94,7 @@ function CustomTarget(nlogp, grad_nlogp, θ_start::Vector{Float64};
     inv_transform=NoTransform) 
     d = length(θ_start)
     if θ_names==nothing
-        θ_names = [String("θ_", i) for i=1:d]
+        θ_names = [string("θ_", i) for i=1:d]
     end
     return Target(d, Hamiltonian(nlogp, grad_nlogp), transform, inv_transform, θ_start, θ_names)
 end
