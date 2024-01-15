@@ -10,8 +10,6 @@ using DynamicPPL, LogDensityProblemsAD, LogDensityProblems, ForwardDiff
 using AbstractMCMC, MCMCChains, MCMCDiagnosticTools, Distributed
 using Distributions, DistributionsAD, ProgressMeter
 
-abstract type Target <: AbstractMCMC.AbstractModel end
-
 include("hamiltonian.jl")
 include("targets.jl")
 include("sampler.jl")
