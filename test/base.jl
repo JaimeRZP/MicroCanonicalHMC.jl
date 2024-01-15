@@ -71,7 +71,7 @@ end
     spl = MCHMC(0, 0.001; eps = 0.01, L = 0.1, sigma = ones(d))
     aspl = MCHMC(0, 0.001; eps = 0.01, L = 0.1, sigma = ones(d), adaptive = true)
     _, init = MicroCanonicalHMC.Step(rng, spl, target.h;
-        trans_init_params = target.prior_draw())
+        trans_init_params = target.θ_start)
     tune_sigma, tune_eps, tune_L = MicroCanonicalHMC.tune_what(spl, d)
     tune_sigma, tune_eps, tune_L = MicroCanonicalHMC.tune_what(aspl, d)
     @test tune_sigma == tune_eps == tune_L == false
