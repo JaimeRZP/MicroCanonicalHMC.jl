@@ -250,23 +250,18 @@ function Sample(
     kwargs...,
 )
     io = open(joinpath(fol_name, "VarNames.txt"), "w") do io
-        println(io, string(target.vsyms))
+        println(io, string(target.θ_names))
     end
 
     chain = []
     ### initial conditions ###
-    if init_params != nothing
-        @info "using provided init params"
-        trans_init_params = target.inv_transform(init_params)
-    else
-        @info "sampling from prior"
-        trans_init_params = target.prior_draw()
-    end
+    trans_init_params = target.transform(target.θ_start)
+
     transition, state = Step(
         rng,
         sampler,
         target.h;
-        bijector = target.transform,
+        bijector = target.inv_transform,
         trans_init_params = trans_init_params,
         kwargs...,
     )
