@@ -1,11 +1,11 @@
-function tune_what(sampler::MCHMCSampler, d::Int)
+function tune_what(sampler::MCHMCSampler, d::Int; T::Type = Float64)
     tune_sigma, tune_eps, tune_L = false, false, false
 
     if sampler.hyperparameters.sigma == [0.0]
         @info "Tuning sigma ⏳"
         tune_sigma = true
         if sampler.settings.init_sigma == nothing
-            init_sigma = ones(d)
+            init_sigma = ones(T, d)
         else
             init_sigma = sampler.settings.init_sigma
         end
@@ -16,7 +16,7 @@ function tune_what(sampler::MCHMCSampler, d::Int)
         @info "Tuning eps ⏳"
         tune_eps = true
         if sampler.settings.init_eps == nothing
-            init_eps = 0.5
+            init_eps = T(0.5)
         else
             init_eps = sampler.settings.init_eps
         end
@@ -27,7 +27,7 @@ function tune_what(sampler::MCHMCSampler, d::Int)
         @info "Tuning L ⏳"
         tune_L = true
         if sampler.settings.init_sigma == nothing
-            init_L = sqrt(d)
+            init_L = T(sqrt(d))
         else
             init_L = sampler.settings.init_L
         end
@@ -74,17 +74,17 @@ end
 function tune_hyperparameters(
     rng::AbstractRNG,
     sampler::MCHMCSampler,
-    state::MCHMCState;
+    state::MCHMCState{T};
     progress = true,
     kwargs...,
-)
+) where {T}
     ### debugging tool ###
     dialog = get(kwargs, :dialog, false)
     sett = sampler.settings
 
     # Tuning
     d = length(state.x)
-    tune_sigma, tune_eps, tune_L = tune_what(sampler, d)
+    tune_sigma, tune_eps, tune_L = tune_what(sampler, d; T=T)
     nadapt = sampler.settings.nadapt
 
     xs = state.x[:]

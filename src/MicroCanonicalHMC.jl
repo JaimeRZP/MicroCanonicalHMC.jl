@@ -1,6 +1,6 @@
 module MicroCanonicalHMC
 
-export Settings, MCHMC, Sample
+export Settings, MCHMC, Sample, Step
 export Summarize
 export TuringTarget, GaussianTarget, RosenbrockTarget, CustomTarget
 export ParallelTarget

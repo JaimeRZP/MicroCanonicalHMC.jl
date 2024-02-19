@@ -1,3 +1,23 @@
+@testset "Types" begin
+    target_default = RosenbrockTarget(1.0, 10.0; d=2);
+    T = Float32
+    target_T = RosenbrockTarget(1.0, 10.0; T=T, d=2);
+
+    @test eltype(target_default.θ_start) == Float64
+    @test eltype(target_T.θ_start) == T
+    @test eltype(target_default.h.ℓπ(target_default.θ_start)) == Float64
+    @test eltype(target_T.h.ℓπ(target_T.θ_start)) == T
+
+    spl = MCHMC(0, 0.01)
+    _, _, _, = MicroCanonicalHMC.tune_what(spl, 10; T=Float32)
+    #println(spl.hyperparameters)
+    #@test eltype(spl.hyperparameters.eps) == Float32
+    #@test eltype(spl.hyperparameters.L) == Float32
+    #@test eltype(spl.hyperparameters.sigma) == Float32
+    #t, s = Step(spl, target_T.h, target_T.θ_start)
+    #@test eltype(s.x) == T
+    #println(s)
+end
 @testset "Settings" begin
     spl = MCHMC(
         10_000,

@@ -1,1 +1,1 @@
-AbstractPPL.VarName{_A, Setfield.IdentityLens} where _A[d_1, d_2]
+["θ_1", "θ_2"]

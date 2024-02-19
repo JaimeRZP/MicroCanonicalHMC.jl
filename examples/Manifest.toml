@@ -1171,9 +1171,11 @@ version = "2.28.2+0"
 
 [[deps.MicroCanonicalHMC]]
 deps = ["AbstractMCMC", "DataFrames", "Distributed", "Distributions", "DistributionsAD", "DynamicPPL", "ForwardDiff", "LinearAlgebra", "LogDensityProblems", "LogDensityProblemsAD", "MCMCChains", "MCMCDiagnosticTools", "ProgressMeter", "Random", "Statistics"]
-git-tree-sha1 = "7f48d0dbedadefa9ff57b96defa08b92ffb2bf6a"
+git-tree-sha1 = "6706e3b7feca9338f88459509b036b8ed458c165"
+repo-rev = "Types"
+repo-url = ".."
 uuid = "234d2aa0-2291-45f7-9047-6fa6f316b0a8"
-version = "0.1.0"
+version = "0.1.1"
 
 [[deps.MicroCollections]]
 deps = ["BangBang", "InitialValues", "Setfield"]

@@ -78,9 +78,9 @@ function MCHMC(nadapt::Int, TEV::Real; kwargs...)
     return MCHMCSampler(sett, hyperparameters, hamiltonian_dynamics)
 end
 
-function Random_unit_vector(rng::AbstractRNG, d::Int; _normalize = true)
+function Random_unit_vector(rng::AbstractRNG, d::Int; T::Type=Float64, _normalize = true)
     """Generates a random (isotropic) unit vector."""
-    u = randn(rng, d)
+    u = randn(rng, T, d)
     if _normalize
         u = normalize(u)
     end
@@ -128,35 +128,35 @@ struct Transition{T}
     ℓ::T
 end
 
-function Transition(state::MCHMCState, bijector)
+function Transition(state::MCHMCState{T}, bijector) where {T}
     eps = (state.Feps / state.Weps)^(-1 / 6)
     sample = bijector(state.x)[:]
-    return Transition(sample, eps, state.dE, -state.l)
+    return Transition(sample, T(eps), state.dE, -state.l)
 end
 
 function Step(
     sampler::MCHMCSampler,
-    h::Hamiltonian;
+    h::Hamiltonian,
+    init_params::AbstractVector;
     kwargs...)
-    return Step(Random.GLOBAL_RNG, sampler, h; kwargs...)
+    return Step(Random.GLOBAL_RNG, sampler, h, init_params; kwargs...)
 end
 
 function Step(
     rng::AbstractRNG,
     sampler::MCHMCSampler,
     h::Hamiltonian,
-    init_params::AbstractVector;
+    init_params::Vector{T};
     bijector = NoTransform,
     kwargs...,
-)
+) where {T}
     sett = sampler.settings
-    T = eltype(init_params)
     kwargs = Dict(kwargs)
     d = length(init_params)
     l, g = -1 .* h.∂lπ∂θ(init_params)
-    u = Random_unit_vector(rng, d)
+    u = Random_unit_vector(rng, d; T=T)
     Weps = T(1e-5)
-    Feps = Weps * sampler.hyperparameters.eps^(1 / 6)
+    Feps = Weps * sampler.hyperparameters.eps^(1/6)
     state = MCHMCState{T}(rng, 0, init_params, u, l, g, 0.0, Feps, Weps, h)
     state = tune_hyperparameters(rng, sampler, state; kwargs...)
     transition = Transition(state, bijector)
