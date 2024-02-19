@@ -19,32 +19,10 @@ Hyperparameters(; kwargs...) = begin
     Hyperparameters(eps, L, nu, lambda_c, sigma, gamma, sigma_xi)
 end
 
-mutable struct Settings{T}
-    nadapt::Int
-    TEV::T
-    nchains::Int
-    adaptive::Bool
-    integrator::String
-    init_eps::Union{Nothing,T}
-    init_L::Union{Nothing,T}
-    init_sigma::Union{Nothing,AbstractVector{T}}
-end
-
-Settings(; kwargs...) = begin
-    kwargs = Dict(kwargs)
-    nadapt = get(kwargs, :nadapt, 1000)
-    TEV = get(kwargs, :TEV, 0.001)
-    adaptive = get(kwargs, :adaptive, false)
-    nchains = get(kwargs, :nchains, 1)
-    integrator = get(kwargs, :integrator, "LF")
-    init_eps = get(kwargs, :init_eps, nothing)
-    init_L = get(kwargs, :init_L, nothing)
-    init_sigma = get(kwargs, :init_sigma, nothing)
-    Settings(nadapt, TEV, nchains, adaptive, integrator, init_eps, init_L, init_sigma)
-end
-
 struct MCHMCSampler <: AbstractMCMC.AbstractSampler
-    settings::Settings
+    nadapt::Int
+    TEV::Real
+    adaptive::Bool
     hyperparameters::Hyperparameters
     hamiltonian_dynamics::Function
 end
@@ -59,21 +37,20 @@ end
 
 Constructor for the MicroCanonical HMC sampler
 """
-function MCHMC(nadapt::Int, TEV::Real; kwargs...)
+function MCHMC(nadapt::Int, TEV::Real; integrator="LF", adaptive=false, kwargs...)
     """the MCHMC (q = 0 Hamiltonian) sampler"""
-    sett = Settings(; nadapt = nadapt, TEV = TEV, kwargs...)
     hyperparameters = Hyperparameters(; kwargs...)
 
     ### integrator ###
-    if sett.integrator == "LF" # leapfrog
+    if integrator == "LF" # leapfrog
         hamiltonian_dynamics = Leapfrog
-    elseif sett.integrator == "MN" # minimal norm
+    elseif integrator == "MN" # minimal norm
         hamiltonian_dynamics = Minimal_norm
     else
         println(string("integrator = ", integrator, "is not a valid option."))
     end
 
-    return MCHMCSampler(sett, hyperparameters, hamiltonian_dynamics)
+    return MCHMCSampler(nadapt, TEV, adaptive, hyperparameters, hamiltonian_dynamics)
 end
 
 function Random_unit_vector(rng::AbstractRNG, d::Int; T::Type=Float64, _normalize = true)
@@ -148,7 +125,6 @@ function Step(
     bijector = NoTransform,
     kwargs...,
 ) where {T}
-    sett = sampler.settings
     kwargs = Dict(kwargs)
     d = length(init_params)
     l, g = -1 .* h.∂lπ∂θ(init_params)
@@ -176,8 +152,8 @@ function Step(
     sigma_xi = sampler.hyperparameters.sigma_xi
     gamma = get(kwargs, :gamma, sampler.hyperparameters.gamma)
 
-    TEV = sampler.settings.TEV
-    adaptive = get(kwargs, :adaptive, sampler.settings.adaptive)
+    TEV = sampler.TEV
+    adaptive = get(kwargs, :adaptive, sampler.adaptive)
 
     # Hamiltonian step
     xx, uu, ll, gg, kinetic_change = sampler.hamiltonian_dynamics(sampler, state)
