@@ -14,9 +14,8 @@
     #@test eltype(spl.hyperparameters.eps) == Float32
     #@test eltype(spl.hyperparameters.L) == Float32
     #@test eltype(spl.hyperparameters.sigma) == Float32
-    #t, s = Step(spl, target_T.h, target_T.θ_start)
-    #@test eltype(s.x) == T
-    #println(s)
+    t, s = Step(spl, target_T.h, target_T.θ_start)
+    @test eltype(s.x) == T
 end
 @testset "Settings" begin
     spl = MCHMC(

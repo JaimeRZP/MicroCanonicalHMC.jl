@@ -67,10 +67,8 @@ function MCHMC(nadapt::Int, TEV::Real; kwargs...)
     ### integrator ###
     if sett.integrator == "LF" # leapfrog
         hamiltonian_dynamics = Leapfrog
-        grad_evals_per_step = 1
     elseif sett.integrator == "MN" # minimal norm
         hamiltonian_dynamics = Minimal_norm
-        grad_evals_per_step = 2
     else
         println(string("integrator = ", integrator, "is not a valid option."))
     end
