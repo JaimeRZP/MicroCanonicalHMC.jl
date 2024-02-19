@@ -8,15 +8,12 @@ mutable struct Hyperparameters{T}
     sigma_xi::T
 end
 
-Hyperparameters(; kwargs...) = begin
-    eps = get(kwargs, :eps, 0.0)
-    L = get(kwargs, :L, 0.0)
-    nu = get(kwargs, :nu, 0.0)
-    sigma = get(kwargs, :sigma, [0.0])
-    lambda_c = get(kwargs, :lambda_c, 0.1931833275037836)
-    gamma = get(kwargs, :gamma, (50 - 1) / (50 + 1)) #(neff-1)/(neff+1) 
-    sigma_xi = get(kwargs, :sigma_xi, 1.5)
-    Hyperparameters(eps, L, nu, lambda_c, sigma, gamma, sigma_xi)
+function Hyperparameters(eps::T, L::T, sigma::Vector{T}; kwargs...) where {T}
+    nu = get(kwargs, :nu, T(0.0))
+    lambda_c = get(kwargs, :lambda_c, T(0.1931833275037836))
+    gamma = get(kwargs, :gamma, T((50 - 1) / (50 + 1))) #(neff-1)/(neff+1) 
+    sigma_xi = get(kwargs, :sigma_xi, T(1.5))
+    return Hyperparameters(eps, L, nu, lambda_c, sigma, gamma, sigma_xi)
 end
 
 struct MCHMCSampler <: AbstractMCMC.AbstractSampler
@@ -37,9 +34,11 @@ end
 
 Constructor for the MicroCanonical HMC sampler
 """
-function MCHMC(nadapt::Int, TEV::Real; integrator="LF", adaptive=false, kwargs...)
+function MCHMC(nadapt::Int, TEV::Real;
+    eps=0.0, L=0.0, sigma=[0.0],
+    integrator="LF", adaptive=false, kwargs...)
     """the MCHMC (q = 0 Hamiltonian) sampler"""
-    hyperparameters = Hyperparameters(; kwargs...)
+    hyperparameters = Hyperparameters(eps, L, sigma; kwargs...)
 
     ### integrator ###
     if integrator == "LF" # leapfrog
