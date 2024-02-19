@@ -8,13 +8,18 @@
     @test eltype(target_default.h.ℓπ(target_default.θ_start)) == Float64
     @test eltype(target_T.h.ℓπ(target_T.θ_start)) == T
 
-    spl = MCHMC(0, 0.01)
+    spl = MCHMC(0, 0.01; T=T)
+    @test eltype(spl.hyperparameters.eps) == Float32
     _, _, _, = MicroCanonicalHMC.tune_what(spl, 10; T=Float32)
-    #println(spl.hyperparameters)
-    #@test eltype(spl.hyperparameters.eps) == Float32
-    #@test eltype(spl.hyperparameters.L) == Float32
-    #@test eltype(spl.hyperparameters.sigma) == Float32
+    @test eltype(spl.hyperparameters.eps) == Float32 
     t, s = Step(spl, target_T.h, target_T.θ_start)
+    @test eltype(s.x) == T
+
+    aspl = MCHMC(0, 0.01; T=T, adaptive=true)
+    @test eltype(aspl.hyperparameters.eps) == Float32
+    _, _, _, = MicroCanonicalHMC.tune_what(spl, 10; T=Float32)
+    @test eltype(aspl.hyperparameters.eps) == Float32 
+    t, s = Step(aspl, target_T.h, target_T.θ_start)
     @test eltype(s.x) == T
 end
 @testset "Settings" begin
