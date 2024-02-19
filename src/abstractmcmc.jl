@@ -12,7 +12,7 @@ function AbstractMCMC.step(
         init_params = randn(rng, d)
     end
     h = Hamiltonian(logdensity)
-    return Step(rng, spl, h; trans_init_params=init_params, kwargs...)
+    return Step(rng, spl, h, init_params; kwargs...)
 end
 
 function AbstractMCMC.step(

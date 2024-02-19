@@ -67,10 +67,10 @@ function MCHMC(nadapt::Int, TEV::Real; kwargs...)
     ### integrator ###
     if sett.integrator == "LF" # leapfrog
         hamiltonian_dynamics = Leapfrog
-        grad_evals_per_step = 1.0
+        grad_evals_per_step = 1
     elseif sett.integrator == "MN" # minimal norm
         hamiltonian_dynamics = Minimal_norm
-        grad_evals_per_step = 2.0
+        grad_evals_per_step = 2
     else
         println(string("integrator = ", integrator, "is not a valid option."))
     end
@@ -135,21 +135,29 @@ function Transition(state::MCHMCState, bijector)
 end
 
 function Step(
-    rng::AbstractRNG,
     sampler::MCHMCSampler,
     h::Hamiltonian;
+    kwargs...)
+    return Step(Random.GLOBAL_RNG, sampler, h; kwargs...)
+end
+
+function Step(
+    rng::AbstractRNG,
+    sampler::MCHMCSampler,
+    h::Hamiltonian,
+    init_params::AbstractVector;
     bijector = NoTransform,
-    trans_init_params = nothing,
     kwargs...,
 )
     sett = sampler.settings
+    T = eltype(init_params)
     kwargs = Dict(kwargs)
-    d = length(trans_init_params)
-    l, g = -1 .* h.∂lπ∂θ(trans_init_params)
+    d = length(init_params)
+    l, g = -1 .* h.∂lπ∂θ(init_params)
     u = Random_unit_vector(rng, d)
-    Weps = 1e-5
+    Weps = T(1e-5)
     Feps = Weps * sampler.hyperparameters.eps^(1 / 6)
-    state = MCHMCState(rng, 0, trans_init_params, u, l, g, 0.0, Feps, Weps, h)
+    state = MCHMCState{T}(rng, 0, init_params, u, l, g, 0.0, Feps, Weps, h)
     state = tune_hyperparameters(rng, sampler, state; kwargs...)
     transition = Transition(state, bijector)
     return transition, state
@@ -186,7 +194,7 @@ function Step(
         xi = varE / TEV + 1e-8
         # the weight which reduces the impact of stepsizes which 
         # are much larger on much smaller than the desired one.        
-        w = exp(-0.5 * (log(xi) / (6.0 * sigma_xi))^2)
+        w = exp(-(1/2) * (log(xi) / (6 * sigma_xi))^2)
         # Kalman update the linear combinations
         Feps = gamma * state.Feps + w * (xi / eps^6)
         Weps = gamma * state.Weps + w
@@ -258,17 +266,16 @@ function Sample(
     if init_params == nothing
         init_params = target.θ_start
     end
-    
+
     trans_init_params = target.transform(init_params)
 
     transition, state = Step(
         rng,
         sampler,
-        target.h;
+        target.h,
+        trans_init_params;
         bijector = target.inv_transform,
-        trans_init_params = trans_init_params,
-        kwargs...,
-    )
+        kwargs...)
     push!(chain, [transition.θ; transition.ϵ; transition.δE; transition.ℓ])
 
     io = open(joinpath(fol_name, string(file_name, ".txt")), "w") do io

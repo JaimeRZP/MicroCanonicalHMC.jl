@@ -57,11 +57,11 @@ end
 function Neff(samples, l::Int)
     ess, rhat = Summarize(samples)
     neff = ess ./ l
-    return 1.0 / mean(1 ./ neff)
+    return 1 / mean(1 ./ neff)
 end
 
 function eval_nu(eps, L, d)
-    nu = sqrt((exp(2 * eps / L) - 1.0) / d)
+    nu = sqrt((exp(2 * eps / L) - 1) / d)
     return nu
 end
 

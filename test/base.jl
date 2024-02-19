@@ -54,8 +54,7 @@ end
     rng = MersenneTwister(1234)
     target = GaussianTarget(m, s)
     spl = MCHMC(0, 0.001)
-    _, init = MicroCanonicalHMC.Step(rng, spl, target.h;
-        trans_init_params = m)
+    _, init = MicroCanonicalHMC.Step(rng, spl, target.h, m)
     @test init.x == m
     @test init.g == m
     @test init.dE == init.Feps == 0.0
@@ -70,8 +69,7 @@ end
     target = GaussianTarget(m, s)
     spl = MCHMC(0, 0.001; eps = 0.01, L = 0.1, sigma = ones(d))
     aspl = MCHMC(0, 0.001; eps = 0.01, L = 0.1, sigma = ones(d), adaptive = true)
-    _, init = MicroCanonicalHMC.Step(rng, spl, target.h;
-        trans_init_params = target.θ_start)
+    _, init = MicroCanonicalHMC.Step(rng, spl, target.h, target.θ_start)
     tune_sigma, tune_eps, tune_L = MicroCanonicalHMC.tune_what(spl, d)
     tune_sigma, tune_eps, tune_L = MicroCanonicalHMC.tune_what(aspl, d)
     @test tune_sigma == tune_eps == tune_L == false
