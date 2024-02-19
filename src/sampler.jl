@@ -255,7 +255,11 @@ function Sample(
 
     chain = []
     ### initial conditions ###
-    trans_init_params = target.transform(target.θ_start)
+    if init_params == nothing
+        init_params = target.θ_start
+    end
+    
+    trans_init_params = target.transform(init_params)
 
     transition, state = Step(
         rng,
