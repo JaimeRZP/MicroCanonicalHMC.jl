@@ -27,15 +27,6 @@ struct HDF5Chain
     n::Ref{Int}
 end
 
-"""
-    $(TYPEDSIGNATURES)
-    $(FUNCTIONNAME)(...) do chain_file
-        ...
-    end
-
-Create a disk-backed chain object that you can `push!` samples to. The
-do-block version calls `close` automatically when the block exits.
-"""
 function HDF5Chain(file_name::String, sample_length, num_steps, T, chunk)
     file = h5open(file_name, "w")
     dataset = create_dataset(file, "samples", datatype(Float64), (sample_length, num_steps))

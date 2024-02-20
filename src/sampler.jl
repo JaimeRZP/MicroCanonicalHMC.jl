@@ -222,6 +222,10 @@ function Sample(
     )
 end
 
+function _make_sample(transition::Transition)
+    return [transition.θ; transition.ϵ; transition.δE; transition.ℓ]
+end
+
 """
     sample(
         rng::AbstractRNG,
@@ -235,24 +239,7 @@ end
         kwargs...
     )
 Sampling routine
-"""
-
-function _make_sample(transition::Transition)
-    return [transition.θ; transition.ϵ; transition.δE; transition.ℓ]
-end
-
-"""
-    $(TYPEDSIGNATURES)
-
-Sample from the target distribution using the provided sampler.
-
-Keyword arguments:
-* `file_name` — if provided, save chain to disk (in HDF5 format)
-* `file_chunk` — write to disk only once every `file_chunk` steps
-  (default: 10)
- 
-Returns: a vector of samples
-"""   
+""" 
 function Sample(
     rng::AbstractRNG,
     sampler::MCHMCSampler,
