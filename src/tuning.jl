@@ -84,7 +84,7 @@ function tune_hyperparameters(
             if sampler.tune_sigma
                 sampler.hyperparameters.sigma = sigma
             end
-            if sdampler.tune_L
+            if sampler.tune_L
                 sampler.hyperparameters.L =
                     sqrt(mean(sigma .^ 2)) * sampler.hyperparameters.eps
             end
