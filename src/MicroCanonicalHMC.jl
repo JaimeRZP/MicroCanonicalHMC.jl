@@ -1,7 +1,7 @@
 module MicroCanonicalHMC
 
 using LinearAlgebra, Statistics, Adapt, Random, DataFrames, HDF5,
-    DocStringExtensions, LogDensityProblemsAD, LogDensityProblems, ForwardDiff,
+    LogDensityProblemsAD, LogDensityProblems, ForwardDiff,
     AbstractMCMC, MCMCChains, MCMCDiagnosticTools, Distributed,
     Distributions, DistributionsAD, ProgressMeter, Markdown
 
