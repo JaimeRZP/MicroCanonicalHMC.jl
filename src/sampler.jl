@@ -6,6 +6,8 @@ mutable struct Hyperparameters{T}
     sigma::AbstractVector{T}
     gamma::T
     sigma_xi::T
+    Weps::T
+    Feps::T
 end
 
 function Hyperparameters(; kwargs...)
@@ -16,7 +18,9 @@ function Hyperparameters(; kwargs...)
     lambda_c = get(kwargs, :lambda_c, 0.0)
     gamma = get(kwargs, :gamma, 0.0)
     sigma_xi = get(kwargs, :sigma_xi, 0.0)
-    return Hyperparameters(eps, L, nu, lambda_c, sigma, gamma, sigma_xi)
+    Weps = get(kwargs, :Weps, 0.0)
+    Feps = get(kwargs, :Feps, 0.0)
+    return Hyperparameters(eps, L, nu, lambda_c, sigma, gamma, sigma_xi, Weps, Feps)
 end
 
 mutable struct MCHMCSampler <: AbstractMCMC.AbstractSampler
@@ -62,7 +66,11 @@ function MCHMC(nadapt::Int, TEV::Real;
     return MCHMCSampler(nadapt, TEV, adaptive, tune_eps, tune_L, tune_sigma, hyperparameters, hamiltonian_dynamics)
 end
 
-function Random_unit_vector(rng::AbstractRNG, d::Int; T::Type=Float64, _normalize = true)
+function Random_unit_vector(rng::AbstractRNG, d::Int; _normalize = true)
+    return Random_unit_vector(rng, d, Float64; _normalize = _normalize)
+end
+
+function Random_unit_vector(rng::AbstractRNG, d::Int, T::Type; _normalize = true)
     """Generates a random (isotropic) unit vector."""
     u = randn(rng, T, d)
     if _normalize
@@ -71,14 +79,14 @@ function Random_unit_vector(rng::AbstractRNG, d::Int; T::Type=Float64, _normaliz
     return u
 end
 
-function Partially_refresh_momentum(rng::AbstractRNG, nu::Float64, u::AbstractVector)
+function Partially_refresh_momentum(rng::AbstractRNG, nu::T, u::Vector{T}) where {T}
     d = length(u)
-    z = nu .* Random_unit_vector(rng, d; _normalize = false)
+    z = nu .* Random_unit_vector(rng, d, T; _normalize = false)
     uu = u .+ z
     return normalize(uu)
 end
 
-function Update_momentum(d::Number, eff_eps::Number, g::AbstractVector, u::AbstractVector)
+function Update_momentum(d::Int, eff_eps::T, g::Vector{T}, u::Vector{T}) where {T}
     """The momentum updating map of the esh dynamics (see https://arxiv.org/pdf/2111.02434.pdf)
     similar to the implementation: https://github.com/gregversteeg/esh_dynamics
     There are no exponentials e^delta, which prevents overflows when the gradient norm is large."""
@@ -100,8 +108,6 @@ struct MCHMCState{T}
     l::T
     g::Vector{T}
     dE::T
-    Feps::T
-    Weps::T
     h::Hamiltonian
 end
 
@@ -112,8 +118,11 @@ struct Transition{T}
     ℓ::T
 end
 
-function Transition(state::MCHMCState{T}, bijector) where {T}
-    eps = (state.Feps / state.Weps)^(-1 / 6)
+function Transition(
+    state::MCHMCState{T},
+    hp::Hyperparameters{T},
+    bijector) where {T}
+    eps = (hp.Feps / hp.Weps)^(-1 / 6)
     sample = bijector(state.x)[:]
     return Transition(sample, T(eps), state.dE, -state.l)
 end
@@ -137,12 +146,10 @@ function Step(
     kwargs = Dict(kwargs)
     d = length(init_params)
     l, g = -1 .* h.∂lπ∂θ(init_params)
-    u = Random_unit_vector(rng, d; T=T)
-    Weps = T(1e-5)
-    Feps = Weps * sampler.hyperparameters.eps^(1/6)
-    state = MCHMCState{T}(rng, 0, init_params, u, l, g, T(0.0), Feps, Weps, h)
+    u = Random_unit_vector(rng, d, T)
+    state = MCHMCState{T}(rng, 0, init_params, u, l, g, T(0.0), h)
     state = tune_hyperparameters(rng, sampler, state; kwargs...)
-    transition = Transition(state, bijector)
+    transition = Transition(state, sampler.hyperparameters, bijector)
     return transition, state
 end
 
@@ -157,6 +164,8 @@ function Step(
     dialog = get(kwargs, :dialog, false)
 
     eps = sampler.hyperparameters.eps
+    Weps = sampler.hyperparameters.Weps
+    Feps = sampler.hyperparameters.Feps
     nu = sampler.hyperparameters.nu
     sigma_xi = sampler.hyperparameters.sigma_xi
     gamma = sampler.hyperparameters.gamma
@@ -167,7 +176,7 @@ function Step(
     xx, uu, ll, gg, kinetic_change = sampler.hamiltonian_dynamics(sampler, state)
     # Langevin-like noise
     uuu = Partially_refresh_momentum(rng, nu, uu)
-    dEE = kinetic_change + ll - state.l
+    dEE = T(kinetic_change + ll - state.l)
 
     if sampler.adaptive
         d = length(xx)
@@ -176,21 +185,20 @@ function Step(
         xi = varE / TEV + T(1e-8)
         # the weight which reduces the impact of stepsizes which 
         # are much larger on much smaller than the desired one.        
-        w = exp(-T(1/2) * (log(xi) / (6 * sigma_xi))^2)
+        w = exp(-(1/2) * (log(xi) / (6 * sigma_xi))^2)
         # Kalman update the linear combinations
-        Feps = gamma * state.Feps + w * (xi / eps^6)
-        Weps = gamma * state.Weps + w
+        new_Feps = gamma * Feps + w * (xi / eps^6)
+        new_Weps = gamma * Weps + w
         new_eps = (Feps / Weps)^(-1 / 6)
 
-        sampler.hyperparameters.eps = new_eps
+        sampler.hyperparameters.Feps = T(new_Feps)
+        sampler.hyperparameters.Weps = T(new_Weps)
+        sampler.hyperparameters.eps = T(new_eps)
         tune_nu!(sampler, d)
-    else
-        Feps = state.Feps
-        Weps = state.Weps
     end
 
-    state = MCHMCState(rng, state.i + 1, xx, uuu, ll, gg, dEE, Feps, Weps, state.h)
-    transition = Transition(state, bijector)
+    state = MCHMCState(rng, state.i + 1, xx, uuu, ll, gg, dEE, state.h)
+    transition = Transition(state, sampler.hyperparameters, bijector)
     return transition, state
 end
 
@@ -233,6 +241,7 @@ function Sample(
     sampler::MCHMCSampler,
     target::Target,
     n::Int;
+    thinning::Int=1,
     init_params = nothing,
     fol_name = ".",
     file_name = "samples",
@@ -243,12 +252,10 @@ function Sample(
         println(io, string(target.θ_names))
     end
 
-    chain = []
     ### initial conditions ###
     if init_params == nothing
         init_params = target.θ_start
     end
-
     trans_init_params = target.transform(init_params)
 
     transition, state = Step(
@@ -258,6 +265,8 @@ function Sample(
         trans_init_params;
         bijector = target.inv_transform,
         kwargs...)
+
+    chain = Vector{eltype(init_params)}[]
     push!(chain, [transition.θ; transition.ϵ; transition.δE; transition.ℓ])
 
     io = open(joinpath(fol_name, string(file_name, ".txt")), "w") do io

@@ -1,7 +1,8 @@
 @testset "Types" begin
-    target_default = RosenbrockTarget(1.0, 10.0; d=2);
     T = Float32
-    target_T = RosenbrockTarget(1.0, 10.0; T=T, d=2);
+    d = 2
+    target_default = RosenbrockTarget(1.0, 10.0, d);
+    target_T = RosenbrockTarget(T(1.0), T(10.0), d);
 
     @test eltype(target_default.θ_start) == Float64
     @test eltype(target_T.θ_start) == T
@@ -68,8 +69,9 @@ end
     _, init = MicroCanonicalHMC.Step(rng, spl, target.h, m)
     @test init.x == m
     @test init.g == m
-    @test init.dE == init.Feps == 0.0
-    @test init.Weps == 1.0e-5
+    @test init.dE == 0
+    @test spl.hyperparameters.Feps ==  1.0e-5 * 0.5^(1/6)	
+    @test spl.hyperparameters.Weps == 1.0e-5
 end
 
 @testset "Step" begin

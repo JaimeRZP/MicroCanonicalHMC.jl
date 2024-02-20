@@ -20,7 +20,7 @@ function init_hyperparameters!(sampler::MCHMCSampler, T::Type, d::Int)
     end
 
     if init_hp.eps == 0.0
-        eps = T((1/2) * sqrt(d))
+        eps = T((1/2))
     else
         eps = T(init_hp.eps)
     end
@@ -49,8 +49,15 @@ function init_hyperparameters!(sampler::MCHMCSampler, T::Type, d::Int)
         sigma_xi = T(init_hp.sigma_xi)
     end
 
+    if init_hp.Weps == 0.0
+        Weps = T(1e-5)
+    else
+        Weps = T(init_hp.Weps)
+    end
+
+    Feps = T(Weps * eps^(1/6))
     nu = eval_nu(eps, L, d)
-    new_hp = Hyperparameters(eps, L, nu, lambda_c, sigma, gamma, sigma_xi)
+    new_hp = Hyperparameters(eps, L, nu, lambda_c, sigma, gamma, sigma_xi, Weps, Feps)
     sampler.hyperparameters = new_hp
 end
 
@@ -80,7 +87,7 @@ function tune_hyperparameters(
 
     # Tuning
     xs = state.x[:]
-    @showprogress "MCHMC (tuning): " (progress ? 1 : Inf) for i = 2:sampler.nadapt
+    @showprogress "MCHMC (tuning): " (progress ? 1 : Inf) for i = 1:sampler.nadapt
         _, state = Step(rng, sampler, state; adaptive = sampler.tune_eps, kwargs...)
         xs = [xs state.x[:]]
         if mod(i, Int(sampler.nadapt / 5)) == 0
