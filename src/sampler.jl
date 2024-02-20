@@ -8,21 +8,24 @@ mutable struct Hyperparameters{T}
     sigma_xi::T
 end
 
-Hyperparameters(T::Type; kwargs...) = begin
-    eps = get(kwargs, :eps, T(0.0))
-    L = get(kwargs, :L, T(0.0))
-    nu = get(kwargs, :nu, T(0.0))
-    sigma = get(kwargs, :sigma, [T(0.0)])
-    lambda_c = get(kwargs, :lambda_c, T(0.1931833275037836))
-    gamma = get(kwargs, :gamma, T((50 - 1) / (50 + 1))) #(neff-1)/(neff+1) 
-    sigma_xi = get(kwargs, :sigma_xi, T(1.5))
-    Hyperparameters(eps, L, nu, lambda_c, sigma, gamma, sigma_xi)
+function Hyperparameters(; kwargs...)
+    eps = get(kwargs, :eps, 0.0)
+    L = get(kwargs, :L, 0.0)
+    nu = get(kwargs, :nu, 0.0)
+    sigma = get(kwargs, :sigma, [0.0])
+    lambda_c = get(kwargs, :lambda_c, 0.0)
+    gamma = get(kwargs, :gamma, 0.0)
+    sigma_xi = get(kwargs, :sigma_xi, 0.0)
+    return Hyperparameters(eps, L, nu, lambda_c, sigma, gamma, sigma_xi)
 end
 
-struct MCHMCSampler <: AbstractMCMC.AbstractSampler
+mutable struct MCHMCSampler <: AbstractMCMC.AbstractSampler
     nadapt::Int
     TEV::Real
     adaptive::Bool
+    tune_eps::Bool
+    tune_L::Bool
+    tune_sigma::Bool
     hyperparameters::Hyperparameters
     hamiltonian_dynamics::Function
 end
@@ -34,12 +37,18 @@ end
         TEV::Real;
         kwargs...
     )
-
-Constructor for the MicroCanonical HMC sampler
+Constructor for the MicroCanonical HMC (q=0 Hamiltonian) sampler
 """
-function MCHMC(nadapt::Int, TEV::Real; integrator="LF", adaptive=false, T::Type=Float64, kwargs...)
-    """the MCHMC (q = 0 Hamiltonian) sampler"""
-    hyperparameters = Hyperparameters(T; kwargs...)
+function MCHMC(nadapt::Int, TEV::Real;
+    integrator="LF",
+    adaptive=false,
+    tune_eps=true,
+    tune_L=true,
+    tune_sigma=true,
+    kwargs...)
+
+    ### Init Hyperparameters ###
+    hyperparameters = Hyperparameters(;kwargs...)
 
     ### integrator ###
     if integrator == "LF" # leapfrog
@@ -50,7 +59,7 @@ function MCHMC(nadapt::Int, TEV::Real; integrator="LF", adaptive=false, T::Type=
         println(string("integrator = ", integrator, "is not a valid option."))
     end
 
-    return MCHMCSampler(nadapt, TEV, adaptive, hyperparameters, hamiltonian_dynamics)
+    return MCHMCSampler(nadapt, TEV, adaptive, tune_eps, tune_L, tune_sigma, hyperparameters, hamiltonian_dynamics)
 end
 
 function Random_unit_vector(rng::AbstractRNG, d::Int; T::Type=Float64, _normalize = true)
@@ -131,7 +140,7 @@ function Step(
     u = Random_unit_vector(rng, d; T=T)
     Weps = T(1e-5)
     Feps = Weps * sampler.hyperparameters.eps^(1/6)
-    state = MCHMCState{T}(rng, 0, init_params, u, l, g, 0.0, Feps, Weps, h)
+    state = MCHMCState{T}(rng, 0, init_params, u, l, g, T(0.0), Feps, Weps, h)
     state = tune_hyperparameters(rng, sampler, state; kwargs...)
     transition = Transition(state, bijector)
     return transition, state
@@ -140,20 +149,19 @@ end
 function Step(
     rng::AbstractRNG,
     sampler::MCHMCSampler,
-    state::MCHMCState;
+    state::MCHMCState{T};
     bijector = NoTransform,
     kwargs...,
-)
+) where {T}
     """One step of the Langevin-like dynamics."""
     dialog = get(kwargs, :dialog, false)
 
     eps = sampler.hyperparameters.eps
     nu = sampler.hyperparameters.nu
     sigma_xi = sampler.hyperparameters.sigma_xi
-    gamma = get(kwargs, :gamma, sampler.hyperparameters.gamma)
+    gamma = sampler.hyperparameters.gamma
 
     TEV = sampler.TEV
-    adaptive = get(kwargs, :adaptive, sampler.adaptive)
 
     # Hamiltonian step
     xx, uu, ll, gg, kinetic_change = sampler.hamiltonian_dynamics(sampler, state)
@@ -161,14 +169,14 @@ function Step(
     uuu = Partially_refresh_momentum(rng, nu, uu)
     dEE = kinetic_change + ll - state.l
 
-    if adaptive
+    if sampler.adaptive
         d = length(xx)
         varE = dEE^2 / d
         # 1e-8 is added to avoid divergences in log xi        
-        xi = varE / TEV + 1e-8
+        xi = varE / TEV + T(1e-8)
         # the weight which reduces the impact of stepsizes which 
         # are much larger on much smaller than the desired one.        
-        w = exp(-(1/2) * (log(xi) / (6 * sigma_xi))^2)
+        w = exp(-T(1/2) * (log(xi) / (6 * sigma_xi))^2)
         # Kalman update the linear combinations
         Feps = gamma * state.Feps + w * (xi / eps^6)
         Weps = gamma * state.Weps + w

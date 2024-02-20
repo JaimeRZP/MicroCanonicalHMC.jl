@@ -1,49 +1,56 @@
-function tune_what(sampler::MCHMCSampler, d::Int; T::Type = Float64)
-    tune_sigma, tune_eps, tune_L = false, false, false
-
-    if sampler.hyperparameters.sigma == [0.0]
+function init_hyperparameters!(sampler::MCHMCSampler, T::Type, d::Int)
+    init_hp = sampler.hyperparameters
+    println("Type: ", T)
+    if sampler.tune_sigma
         @info "Tuning sigma ⏳"
-        tune_sigma = true
-        sampler.hyperparameters.sigma = ones(T, d)
+        if init_hp.sigma == [0.0]
+            sigma = ones(T, d)
+        else
+            sigma = T.(init_hp.sigma)
+        end
     end
 
-    if sampler.hyperparameters.eps == 0.0
+    if sampler.tune_eps
         @info "Tuning eps ⏳"
-        tune_eps = true
-        sampler.hyperparameters.eps = T(0.5)
+        if init_hp.eps == 0.0
+            eps = T((1/2) * sqrt(d))
+        else
+            eps = T(init_hp.eps)
+        end
     end
 
-    if sampler.hyperparameters.L == 0.0
+    if sampler.tune_L
         @info "Tuning L ⏳"
-        tune_L = true
-        sampler.hyperparameters.L = T(sqrt(d))
+        if init_hp.L == 0.0
+            L = T(sqrt(d))
+        else
+            L = T(init_hp.L)
+        end
     end
 
-    tune_nu!(sampler, d)
+    if init_hp.lambda_c == 0.0
+        lambda_c = T(0.1931833275037836)
+    else
+        lambda_c = T(init_hp.lambda_c)
+    end
 
-    return tune_sigma, tune_eps, tune_L
+    if init_hp.gamma == 0.0
+        gamma = T((50 - 1) / (50 + 1)) #(neff-1)/(neff+1) 
+    else
+        gamma = T(init_hp.gamma)
+    end
+
+    if init_hp.sigma_xi == 0.0
+        sigma_xi = T(1.5)
+    else
+        sigma_xi = T(init_hp.sigma_xi)
+    end
+
+    nu = eval_nu(eps, L, d)
+    new_hp = Hyperparameters(eps, L, nu, lambda_c, sigma, gamma, sigma_xi)
+    sampler.hyperparameters = new_hp
 end
 
-function Summarize(samples::AbstractVector)
-    _samples = zeros(length(samples), 1, length(samples[1]))
-    _samples[:, 1, :] = mapreduce(permutedims, vcat, samples)
-    ess, rhat = MCMCDiagnosticTools.ess_rhat(_samples)
-    return ess, rhat
-end
-
-function Summarize(samples::AbstractMatrix)
-    dim_a, dim_b = size(samples)
-    _samples = zeros(dim_a, 1, dim_b)
-    _samples[:, 1, :] = samples
-    ess, rhat = MCMCDiagnosticTools.ess_rhat(_samples)
-    return ess, rhat
-end
-
-function Neff(samples, l::Int)
-    ess, rhat = Summarize(samples)
-    neff = ess ./ l
-    return 1 / mean(1 ./ neff)
-end
 
 function eval_nu(eps, L, d)
     nu = sqrt((exp(2 * eps / L) - 1) / d)
@@ -63,34 +70,23 @@ function tune_hyperparameters(
     progress = true,
     kwargs...,
 ) where {T}
-    ### debugging tool ###
-    dialog = get(kwargs, :dialog, false)
+    ### Init Hyperparameters ###
+    d = length(state.x)
+    init_hyperparameters!(sampler, T, d)
 
     # Tuning
-    d = length(state.x)
-    tune_sigma, tune_eps, tune_L = tune_what(sampler, d; T=T)
-    nadapt = sampler.nadapt
-
     xs = state.x[:]
-    @showprogress "MCHMC (tuning): " (progress ? 1 : Inf) for i = 2:nadapt
-        _, state = Step(rng, sampler, state; adaptive = tune_eps, kwargs...)
+    @showprogress "MCHMC (tuning): " (progress ? 1 : Inf) for i = 2:sampler.nadapt
+        _, state = Step(rng, sampler, state; adaptive = sampler.tune_eps, kwargs...)
         xs = [xs state.x[:]]
-        if mod(i, Int(nadapt / 5)) == 0
-            if dialog
-                println(string("Burn in step: ", i))
-                println(string("eps --->", sampler.hyperparameters.eps))
-            end
+        if mod(i, Int(sampler.nadapt / 5)) == 0
             sigma = vec(std(xs, dims = 2))
-            if tune_sigma
+            if sampler.tune_sigma
                 sampler.hyperparameters.sigma = sigma
             end
-            if tune_L
+            if sdampler.tune_L
                 sampler.hyperparameters.L =
                     sqrt(mean(sigma .^ 2)) * sampler.hyperparameters.eps
-                if dialog
-                    println(string("L   --->", sampler.hyperparameters.L))
-                    println(" ")
-                end
             end
         end
     end
