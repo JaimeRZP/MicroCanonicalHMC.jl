@@ -10,7 +10,7 @@
         cov_matt = Diagonal(e)
         target = GaussianTarget(m, cov_matt)
 
-        spl = MCHMC(10_000, 0.01; init_eps = sqrt(d))
+        spl = MCHMC(10_000, 0.01; eps = sqrt(d))
         samples_mchmc = Sample(spl, target, 100_000; dialog = true)
         samples_mchmc_adaptive =
             Sample(spl, target, 100_000; adaptive = true, dialog = true)
@@ -35,7 +35,9 @@
         ##################
         rng = MersenneTwister(1234)
         target = RosenbrockTarget(1.0, 10.0; d = 2)
-        spl = MCHMC(10_000, 0.01; L = sqrt(2), sigma = ones(target.d), adaptive = true)
+        spl = MCHMC(10_000, 0.01;
+        L = sqrt(2), sigma = ones(target.d),
+        tuning_L = false, tune_sigma = false, adaptive = true)
         samples = Sample(rng, spl, target, 200_000; dialog = true)
         d1 = [sample[1] for sample in samples]
         d2 = [sample[2] for sample in samples]

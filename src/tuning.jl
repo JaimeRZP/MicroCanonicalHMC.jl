@@ -1,31 +1,34 @@
-function init_hyperparameters!(sampler::MCHMCSampler, T::Type, d::Int)
-    init_hp = sampler.hyperparameters
-    println("Type: ", T)
-    if sampler.tune_sigma
-        @info "Tuning sigma ⏳"
-        if init_hp.sigma == [0.0]
-            sigma = ones(T, d)
-        else
-            sigma = T.(init_hp.sigma)
-        end
-    end
-
+function tune_what!(sampler::MCHMCSampler)
     if sampler.tune_eps
         @info "Tuning eps ⏳"
-        if init_hp.eps == 0.0
-            eps = T((1/2) * sqrt(d))
-        else
-            eps = T(init_hp.eps)
-        end
     end
-
     if sampler.tune_L
         @info "Tuning L ⏳"
-        if init_hp.L == 0.0
-            L = T(sqrt(d))
-        else
-            L = T(init_hp.L)
-        end
+    end
+    if sampler.tune_sigma
+        @info "Tuning sigma ⏳"
+    end
+end
+
+function init_hyperparameters!(sampler::MCHMCSampler, T::Type, d::Int)
+    init_hp = sampler.hyperparameters
+
+    if init_hp.sigma == [0.0]
+        sigma = ones(T, d)
+    else
+        sigma = T.(init_hp.sigma)
+    end
+
+    if init_hp.eps == 0.0
+        eps = T((1/2) * sqrt(d))
+    else
+        eps = T(init_hp.eps)
+    end
+
+    if init_hp.L == 0.0
+        L = T(sqrt(d))
+    else
+        L = T(init_hp.L)
     end
 
     if init_hp.lambda_c == 0.0
@@ -72,6 +75,7 @@ function tune_hyperparameters(
 ) where {T}
     ### Init Hyperparameters ###
     d = length(state.x)
+    tune_what!(sampler)
     init_hyperparameters!(sampler, T, d)
 
     # Tuning
@@ -96,6 +100,5 @@ function tune_hyperparameters(
     @info string("nu: ", sampler.hyperparameters.nu)
     @info string("sigma: ", sampler.hyperparameters.sigma)
     @info string("adaptive: ", sampler.adaptive)
-
     return state
 end
