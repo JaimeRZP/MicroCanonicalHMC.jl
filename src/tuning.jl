@@ -87,7 +87,8 @@ function tune_hyperparameters(
 
     # Tuning
     xs = state.x[:]
-    @showprogress "MCHMC (tuning): " (progress ? 1 : Inf) for i = 1:sampler.nadapt
+    pbar = Progress(sampler.nadapt, (progress ? 0 : Inf), "Tuning: ")
+    for i = 1:sampler.nadapt
         _, state = Step(rng, sampler, state; adaptive = sampler.tune_eps, kwargs...)
         xs = [xs state.x[:]]
         if mod(i, Int(sampler.nadapt / 5)) == 0
@@ -100,12 +101,17 @@ function tune_hyperparameters(
                     sqrt(mean(sigma .^ 2)) * sampler.hyperparameters.eps
             end
         end
+        ProgressMeter.next!(pbar, showvalues = [
+            ("ϵ", sampler.hyperparameters.eps),
+            ("L", sampler.hyperparameters.L),
+            ("dE/d", state.dE / d)
+        ])
     end
+    ProgressMeter.finish!(pbar)
 
     @info string("eps: ", sampler.hyperparameters.eps)
     @info string("L: ", sampler.hyperparameters.L)
     @info string("nu: ", sampler.hyperparameters.nu)
     @info string("sigma: ", sampler.hyperparameters.sigma)
-    @info string("adaptive: ", sampler.adaptive)
     return state
 end

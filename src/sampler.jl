@@ -288,7 +288,7 @@ function Sample(
     samples = similar(sample, (length(sample), Int(floor(n/thinning))))
     samples[:, 1] .= sample
 
-    pbar = Progress(n, (progress ? 0 : Inf), "MCHMC: ")
+    pbar = Progress(n, (progress ? 0 : Inf), "Sampling: ")
 
     write_chain(file_name, size(samples)..., eltype(sample), file_chunk) do chain_file
         for i in 2:n
