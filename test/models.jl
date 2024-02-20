@@ -13,9 +13,8 @@
         spl = MCHMC(10_000, 0.01; eps = sqrt(d),
         tune_L = false, tune_sigma = false, adaptive=true)
         samples_mchmc = Sample(spl, target, 100_000)
-        _samples_mchmc = mapreduce(permutedims, vcat, samples_mchmc)
-        s1 = std(_samples_mchmc, dims = 1)[1:end-3]
-        m1 = mean(_samples_mchmc, dims = 1)[1:end-3]
+        s1 = std(samples_mchmc, dims=2)[1:end-3]
+        m1 = mean(samples_mchmc, dims=2)[1:end-3]
 
         @test mean((m1 .- m) ./ sqrt.(e)) ≈ 0.0 atol = 0.2
         @test mean(s1 ./ sqrt.(e) .- 1) ≈ 0.0 atol = 0.2
@@ -34,8 +33,8 @@
         L = sqrt(2), sigma = ones(target.d),
         tune_L = false, tune_sigma = false, adaptive = true)
         samples = Sample(spl, target, 200_000; dialog = true)
-        d1 = [sample[1] for sample in samples]
-        d2 = [sample[2] for sample in samples]
+        d1 = samples[1, :]
+        d2 = samples[2, :]
         mm1, m1, s1, = (median(d1), mean(d1), std(d1))
         mm2, m2, s2, = (median(d2), mean(d2), std(d2))
         @test eltype(samples[1]) == T

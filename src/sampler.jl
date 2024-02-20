@@ -236,6 +236,23 @@ end
     )
 Sampling routine
 """
+
+function _make_sample(transition::Transition)
+    return [transition.θ; transition.ϵ; transition.δE; transition.ℓ]
+end
+
+"""
+    $(TYPEDSIGNATURES)
+
+Sample from the target distribution using the provided sampler.
+
+Keyword arguments:
+* `file_name` — if provided, save chain to disk (in HDF5 format)
+* `file_chunk` — write to disk only once every `file_chunk` steps
+  (default: 10)
+ 
+Returns: a vector of samples
+"""   
 function Sample(
     rng::AbstractRNG,
     sampler::MCHMCSampler,
@@ -243,6 +260,7 @@ function Sample(
     n::Int;
     thinning::Int=1,
     init_params = nothing,
+    file_chunk=10,
     fol_name = ".",
     file_name = "samples",
     progress = true,
@@ -266,37 +284,36 @@ function Sample(
         bijector = target.inv_transform,
         kwargs...)
 
-    chain = Vector{eltype(init_params)}[]
-    push!(chain, [transition.θ; transition.ϵ; transition.δE; transition.ℓ])
+    sample = _make_sample(transition)
+    samples = similar(sample, (length(sample), Int(floor(n/thinning))))
+    samples[:, 1] .= sample
 
-    io = open(joinpath(fol_name, string(file_name, ".txt")), "w") do io
-        println(io, [transition.θ; transition.ϵ; transition.δE; transition.ℓ])
-        @showprogress "MCHMC: " (progress ? 1 : Inf) for i = 1:n-1
-            try
-                transition, state = Step(
+    pbar = Progress(n, (progress ? 0 : Inf), "MCHMC: ")
+
+    write_chain(file_name, size(samples)..., eltype(sample), file_chunk) do chain_file
+        for i in 2:n
+            transition, state = Step(
                     rng,
                     sampler,
                     state;
                     bijector = target.transform,
                     kwargs...,
                 )
-                push!(chain, [transition.θ; transition.ϵ; transition.δE; transition.ℓ])
-                println(io, [transition.θ; transition.ϵ; transition.δE; transition.ℓ])
-            catch err
-                if err isa InterruptException
-                    rethrow(err)
-                else
-                    @warn "Divergence encountered after tuning"
+            if mod(i, thinning)==0
+                j = Int(floor(i/thinning))
+                samples[:,j] = sample = _make_sample(transition)
+                if chain_file !== nothing      
+                    push!(chain_file, sample)
                 end
             end
+            ProgressMeter.next!(pbar, showvalues = [
+                ("ϵ", sampler.hyperparameters.eps),
+                ("dE/d", state.dE / target.d)
+            ])
         end
     end
 
-    io = open(joinpath(fol_name, string(file_name, "_summary.txt")), "w") do io
-        ess, rhat = Summarize(chain)
-        println(io, ess)
-        println(io, rhat)
-    end
+    ProgressMeter.finish!(pbar)
 
-    return chain
+    return samples
 end
