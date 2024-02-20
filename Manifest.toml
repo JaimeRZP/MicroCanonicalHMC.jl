@@ -1,8 +1,8 @@
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.9.3"
+julia_version = "1.9.4"
 manifest_format = "2.0"
-project_hash = "497fb13286c1f72c4d76d5a34fd0fae58399be24"
+project_hash = "c4c3088b08ab3e6227f6e51505376ebd128f1e2a"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -34,9 +34,9 @@ version = "0.4.4"
 
 [[deps.Adapt]]
 deps = ["LinearAlgebra", "Requires"]
-git-tree-sha1 = "76289dc51920fdc6e0013c872ba9551d54961c24"
+git-tree-sha1 = "cde29ddf7e5726c9fb511f340244ea3481267608"
 uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
-version = "3.6.2"
+version = "3.7.2"
 weakdeps = ["StaticArrays"]
 
     [deps.Adapt.extensions]
@@ -143,6 +143,12 @@ weakdeps = ["InverseFunctions"]
 
     [deps.ChangesOfVariables.extensions]
     ChangesOfVariablesInverseFunctionsExt = "InverseFunctions"
+
+[[deps.CodeTracking]]
+deps = ["InteractiveUtils", "UUIDs"]
+git-tree-sha1 = "c0216e792f518b39b22212127d4a84dc31e4e386"
+uuid = "da1fd8a2-8d9e-5ec2-8556-3022fb5608a2"
+version = "1.3.5"
 
 [[deps.CommonSolve]]
 git-tree-sha1 = "0eee5eb66b1cf62cd6ad1b460238e60e4b09400c"
@@ -368,6 +374,30 @@ git-tree-sha1 = "2d6ca471a6c7b536127afccfa7564b5b39227fe0"
 uuid = "46192b85-c4d5-4398-a991-12ede77f4527"
 version = "0.1.5"
 
+[[deps.HDF5]]
+deps = ["Compat", "HDF5_jll", "Libdl", "MPIPreferences", "Mmap", "Preferences", "Printf", "Random", "Requires", "UUIDs"]
+git-tree-sha1 = "26407bd1c60129062cec9da63dc7d08251544d53"
+uuid = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
+version = "0.17.1"
+
+    [deps.HDF5.extensions]
+    MPIExt = "MPI"
+
+    [deps.HDF5.weakdeps]
+    MPI = "da04e1cc-30fd-572f-bb4f-1f8673147195"
+
+[[deps.HDF5_jll]]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "LazyArtifacts", "LibCURL_jll", "Libdl", "MPICH_jll", "MPIPreferences", "MPItrampoline_jll", "MicrosoftMPI_jll", "OpenMPI_jll", "OpenSSL_jll", "TOML", "Zlib_jll", "libaec_jll"]
+git-tree-sha1 = "e4591176488495bf44d7456bd73179d87d5e6eab"
+uuid = "0234f1f7-429e-5d53-9886-15a909be8d59"
+version = "1.14.3+1"
+
+[[deps.Hwloc_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl"]
+git-tree-sha1 = "ca0f6bf568b4bfc807e7537f081c81e35ceca114"
+uuid = "e33a78d0-f292-5ffc-b300-72abe9b543c8"
+version = "2.10.0+0"
+
 [[deps.HypergeometricFunctions]]
 deps = ["DualNumbers", "LinearAlgebra", "OpenLibm_jll", "SpecialFunctions"]
 git-tree-sha1 = "f218fe3736ddf977e0e772bc9a586b2383da2685"
@@ -443,6 +473,12 @@ git-tree-sha1 = "7e5d6779a1e09a36db2a7b6cff50942a0a7d0fca"
 uuid = "692b3bcd-3c85-4b1f-b108-f13ce0eb3210"
 version = "1.5.0"
 
+[[deps.JuliaInterpreter]]
+deps = ["CodeTracking", "InteractiveUtils", "Random", "UUIDs"]
+git-tree-sha1 = "04663b9e1eb0d0eabf76a6d0752e0dac83d53b36"
+uuid = "aa1ae85d-cabe-5617-a682-6adf51b2e16a"
+version = "0.9.28"
+
 [[deps.KernelDensity]]
 deps = ["Distributions", "DocStringExtensions", "FFTW", "Interpolations", "StatsBase"]
 git-tree-sha1 = "90442c50e202a5cdf21a7899c66b240fdef14035"
@@ -467,12 +503,12 @@ version = "0.2.0"
 [[deps.LibCURL]]
 deps = ["LibCURL_jll", "MozillaCACerts_jll"]
 uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
-version = "0.6.3"
+version = "0.6.4"
 
 [[deps.LibCURL_jll]]
 deps = ["Artifacts", "LibSSH2_jll", "Libdl", "MbedTLS_jll", "Zlib_jll", "nghttp2_jll"]
 uuid = "deac9b47-8bc7-5906-a0fe-35ac56dc84c0"
-version = "7.84.0+0"
+version = "8.4.0+0"
 
 [[deps.LibGit2]]
 deps = ["Base64", "NetworkOptions", "Printf", "SHA"]
@@ -481,7 +517,7 @@ uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 [[deps.LibSSH2_jll]]
 deps = ["Artifacts", "Libdl", "MbedTLS_jll"]
 uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
-version = "1.10.2+0"
+version = "1.11.0+1"
 
 [[deps.Libdl]]
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
@@ -543,6 +579,12 @@ git-tree-sha1 = "0d097476b6c381ab7906460ef1ef1638fbce1d91"
 uuid = "e6f89c97-d47a-5376-807f-9c37f3926c36"
 version = "1.0.2"
 
+[[deps.LoweredCodeUtils]]
+deps = ["JuliaInterpreter"]
+git-tree-sha1 = "20ce1091ba18bcdae71ad9b71ee2367796ba6c48"
+uuid = "6f1432cf-f94c-5a45-995e-cdbf5db27b0b"
+version = "2.4.4"
+
 [[deps.MCMCChains]]
 deps = ["AbstractMCMC", "AxisArrays", "Dates", "Distributions", "Formatting", "IteratorInterfaceExtensions", "KernelDensity", "LinearAlgebra", "MCMCDiagnosticTools", "MLJModelInterface", "NaturalSort", "OrderedCollections", "PrettyTables", "Random", "RecipesBase", "Statistics", "StatsBase", "StatsFuns", "TableTraits", "Tables"]
 git-tree-sha1 = "8778ea7283a0bf0d7e507a0235adfff38071493b"
@@ -566,6 +608,24 @@ deps = ["Random", "ScientificTypesBase", "StatisticalTraits"]
 git-tree-sha1 = "03ae109be87f460fe3c96b8a0dbbf9c7bf840bd5"
 uuid = "e80e1ace-859a-464e-9ed9-23947d8ae3ea"
 version = "1.9.2"
+
+[[deps.MPICH_jll]]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "Hwloc_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "MPIPreferences", "TOML"]
+git-tree-sha1 = "656036b9ed6f942d35e536e249600bc31d0f9df8"
+uuid = "7cb0a576-ebde-5e09-9194-50597f1243b4"
+version = "4.2.0+0"
+
+[[deps.MPIPreferences]]
+deps = ["Libdl", "Preferences"]
+git-tree-sha1 = "8f6af051b9e8ec597fa09d8885ed79fd582f33c9"
+uuid = "3da0fdf6-3ccc-4f1b-acd9-58baa6c99267"
+version = "0.1.10"
+
+[[deps.MPItrampoline_jll]]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "Hwloc_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "MPIPreferences", "TOML"]
+git-tree-sha1 = "77c3bd69fdb024d75af38713e883d0f249ce19c2"
+uuid = "f1f71cc9-e9ae-5b93-9b94-4fe0e1ad3748"
+version = "5.3.2+0"
 
 [[deps.MacroTools]]
 deps = ["Markdown", "Random"]
@@ -592,6 +652,12 @@ deps = ["BangBang", "InitialValues", "Setfield"]
 git-tree-sha1 = "629afd7d10dbc6935ec59b32daeb33bc4460a42e"
 uuid = "128add7d-3638-4c79-886c-908ea0c25c34"
 version = "0.1.4"
+
+[[deps.MicrosoftMPI_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "f12a29c4400ba812841c6ace3f4efbb6dbb3ba01"
+uuid = "9237b28f-5490-5468-be7b-bb81f5f5e6cf"
+version = "10.1.4+2"
 
 [[deps.Missings]]
 deps = ["DataAPI"]
@@ -636,6 +702,18 @@ version = "0.3.21+4"
 deps = ["Artifacts", "Libdl"]
 uuid = "05823500-19ac-5b8b-9628-191a04bc5112"
 version = "0.8.1+0"
+
+[[deps.OpenMPI_jll]]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "MPIPreferences", "TOML"]
+git-tree-sha1 = "e25c1778a98e34219a00455d6e4384e017ea9762"
+uuid = "fe0851c0-eecd-5654-98d4-656369965a5c"
+version = "4.1.6+0"
+
+[[deps.OpenSSL_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl"]
+git-tree-sha1 = "60e3045590bd104a16fefb12836c00c0ef8c7f8c"
+uuid = "458c3c95-2e84-50aa-8efc-19380b2a3a95"
+version = "3.0.13+0"
 
 [[deps.OpenSpecFun_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "Pkg"]
@@ -758,6 +836,12 @@ deps = ["UUIDs"]
 git-tree-sha1 = "838a3a4188e2ded87a4f9f184b4b0d78a1e91cb7"
 uuid = "ae029012-a4dd-5104-9daa-d747884805df"
 version = "1.3.0"
+
+[[deps.Revise]]
+deps = ["CodeTracking", "Distributed", "FileWatching", "JuliaInterpreter", "LibGit2", "LoweredCodeUtils", "OrderedCollections", "Pkg", "REPL", "Requires", "UUIDs", "Unicode"]
+git-tree-sha1 = "3fe4e5b9cdbb9bbc851c57b149e516acc07f8f72"
+uuid = "295af30f-e4ad-537b-8983-00126c2a3abe"
+version = "3.5.13"
 
 [[deps.Rmath]]
 deps = ["Random", "Rmath_jll"]
@@ -1001,6 +1085,12 @@ git-tree-sha1 = "977aed5d006b840e2e40c0b48984f7463109046d"
 uuid = "700de1a5-db45-46bc-99cf-38207098b444"
 version = "0.2.3"
 
+[[deps.libaec_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl"]
+git-tree-sha1 = "eddd19a8dea6b139ea97bdc8a0e2667d4b661720"
+uuid = "477f73a3-ac25-53e9-8cc3-50b2fa2566f0"
+version = "1.0.6+1"
+
 [[deps.libblastrampoline_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
@@ -1009,7 +1099,7 @@ version = "5.8.0+0"
 [[deps.nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "8e850ede-7688-5339-a07c-302acd2aaf8d"
-version = "1.48.0+0"
+version = "1.52.0+1"
 
 [[deps.p7zip_jll]]
 deps = ["Artifacts", "Libdl"]

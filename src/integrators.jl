@@ -7,20 +7,20 @@ end
 
 function Leapfrog(
     h::Hamiltonian,
-    eps::Number,
-    sigma::AbstractVector,
-    x::AbstractVector,
-    u::AbstractVector,
-    l::Number,
-    g::AbstractVector,
-)
+    eps::T,
+    sigma::Vector{T},
+    x::Vector{T},
+    u::Vector{T},
+    l::T,
+    g::Vector{T},
+) where {T}
     """leapfrog"""
     d = length(x)
     # go to the latent space
     z = x ./ sigma
 
     #half step in momentum
-    uu, dr1 = Update_momentum(d, eps * 0.5, g .* sigma, u)
+    uu, dr1 = Update_momentum(d, eps * T(0.5), g .* sigma, u)
 
     #full step in x
     zz = z .+ eps .* uu
@@ -28,7 +28,7 @@ function Leapfrog(
     ll, gg = -1 .* h.∂lπ∂θ(xx)
 
     #half step in momentum
-    uu, dr2 = Update_momentum(d, eps * 0.5, gg .* sigma, uu)
+    uu, dr2 = Update_momentum(d, eps * T(0.5), gg .* sigma, uu)
     kinetic_change = (dr1 + dr2) * (d - 1)
 
     return xx, uu, ll, gg, kinetic_change
@@ -46,14 +46,14 @@ end
 
 function Minimal_norm(
     h::Hamiltonian,
-    eps::Number,
-    lambda_c::Number,
-    sigma::AbstractVector,
-    x::AbstractVector,
-    u::AbstractVector,
-    l::Number,
-    g::AbstractVector,
-)
+    eps::T,
+    lambda_c::T,
+    sigma::Vector{T},
+    x::Vector{T},
+    u::Vector{T},
+    l::T,
+    g::Vector{T},
+) where {T}
     """Integrator from https://arxiv.org/pdf/hep-lat/0505020.pdf, see Equation 20."""
     d = length(x)
     # go to the latent space
@@ -64,7 +64,7 @@ function Minimal_norm(
     uu, dr1 = Update_momentum(d, eps * lambda_c, g .* sigma, u)
 
     #T (postion update)
-    zz = z .+ (0.5 * eps) .* uu
+    zz = z .+ (T(0.50) * eps) .* uu
     xx = sigma .* zz
     ll, gg = -1 .* h.∂lπ∂θ(xx)
 
@@ -72,7 +72,7 @@ function Minimal_norm(
     uu, dr2 = Update_momentum(d, eps * (1 - 2 * lambda_c), gg .* sigma, uu)
 
     #T (postion update)
-    zz = zz .+ (0.5 * eps) .* uu
+    zz = zz .+ (T(0.5) * eps) .* uu
     xx = zz .* sigma
     ll, gg = -1 .* h.∂lπ∂θ(xx)
 
