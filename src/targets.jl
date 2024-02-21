@@ -5,8 +5,8 @@ mutable struct Target{T}
     h::Hamiltonian
     transform::Function
     inv_transform::Function
-    θ_start::Vector{T}
-    θ_names::Vector{String}
+    θ_start::AbstractVector{T}
+    θ_names::AbstractVector{String}
 end
 
 function CustomTarget(nlogp, grad_nlogp, θ_start::AbstractVector;
@@ -21,7 +21,7 @@ function CustomTarget(nlogp, grad_nlogp, θ_start::AbstractVector;
 end
 
 function RosenbrockTarget(a::T, b::T, d::Int) where{T}
-    function ℓπ(x::Vector{T}; a = a, b = b) where {T}
+    function ℓπ(x::AbstractVector{T}; a = a, b = b) where {T}
         a = T(a)
         b = T(b)
         x1 = x[1:Int(d / 2)]
@@ -29,7 +29,7 @@ function RosenbrockTarget(a::T, b::T, d::Int) where{T}
         m = @.((a - x1)^2 + b * (x2 - x1^2)^2)
         return -T(1/2) * sum(m)
     end
-    function ∂lπ∂θ(x::Vector{T}) where {T}
+    function ∂lπ∂θ(x::AbstractVector{T}) where {T}
         return ℓπ(x), ForwardDiff.gradient(ℓπ, x)
     end
     θ_start = T.(rand(MvNormal(zeros(d), ones(d))))

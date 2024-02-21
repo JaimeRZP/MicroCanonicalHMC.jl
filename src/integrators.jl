@@ -8,11 +8,11 @@ end
 function Leapfrog(
     h::Hamiltonian,
     eps::T,
-    sigma::Vector{T},
-    x::Vector{T},
-    u::Vector{T},
+    sigma::AbstractVector{T},
+    x::AbstractVector{T},
+    u::AbstractVector{T},
     l::T,
-    g::Vector{T},
+    g::AbstractVector{T},
 ) where {T}
     """leapfrog"""
     d = length(x)
@@ -48,11 +48,11 @@ function Minimal_norm(
     h::Hamiltonian,
     eps::T,
     lambda_c::T,
-    sigma::Vector{T},
-    x::Vector{T},
-    u::Vector{T},
+    sigma::AbstractVector{T},
+    x::AbstractVector{T},
+    u::AbstractVector{T},
     l::T,
-    g::Vector{T},
+    g::AbstractVector{T},
 ) where {T}
     """Integrator from https://arxiv.org/pdf/hep-lat/0505020.pdf, see Equation 20."""
     d = length(x)

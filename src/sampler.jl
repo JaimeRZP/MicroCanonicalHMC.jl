@@ -73,14 +73,14 @@ function Random_unit_vector(rng::AbstractRNG, d::Int, T::Type; _normalize = true
     return u
 end
 
-function Partially_refresh_momentum(rng::AbstractRNG, nu::T, u::Vector{T}) where {T}
+function Partially_refresh_momentum(rng::AbstractRNG, nu::T, u::AbstractVector{T}) where {T}
     d = length(u)
     z = nu .* Random_unit_vector(rng, d, T; _normalize = false)
     uu = u .+ z
     return normalize(uu)
 end
 
-function Update_momentum(d::Int, eff_eps::T, g::Vector{T}, u::Vector{T}) where {T}
+function Update_momentum(d::Int, eff_eps::T, g::AbstractVector{T}, u::AbstractVector{T}) where {T}
     """The momentum updating map of the esh dynamics (see https://arxiv.org/pdf/2111.02434.pdf)
     similar to the implementation: https://github.com/gregversteeg/esh_dynamics
     There are no exponentials e^delta, which prevents overflows when the gradient norm is large."""
@@ -97,10 +97,10 @@ end
 struct MCHMCState{T}
     rng::AbstractRNG
     i::Int
-    x::Vector{T}
-    u::Vector{T}
+    x::AbstractVector{T}
+    u::AbstractVector{T}
     l::T
-    g::Vector{T}
+    g::AbstractVector{T}
     dE::T
     Weps::T
     Feps::T
@@ -108,7 +108,7 @@ struct MCHMCState{T}
 end
 
 struct Transition{T}
-    θ::Vector{T}
+    θ::AbstractVector{T}
     ϵ::T
     δE::T
     ℓ::T
@@ -134,7 +134,7 @@ function Step(
     rng::AbstractRNG,
     sampler::MCHMCSampler,
     h::Hamiltonian,
-    init_params::Vector{T};
+    init_params::AbstractVector{T};
     bijector = NoTransform,
     kwargs...,
 ) where {T}
