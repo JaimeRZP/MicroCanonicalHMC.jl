@@ -194,13 +194,19 @@ function Step(
     return transition, state
 end
 
+function _make_sample(transition::Transition; include_latent=false)
+    if include_latent
+        sample = [transition.θ; transition.ϵ; transition.δE; transition.ℓ]
+    else
+        sample = [transition.θ; transition.ϵ; transition.δE; transition.ℓ]
+    end
+    return sample
+end
+
 function Sample(
     sampler::MCHMCSampler,
     target::Target,
     n::Int;
-    fol_name = ".",
-    file_name = "samples",
-    progress = true,
     kwargs...,
 )
     return Sample(
@@ -208,14 +214,8 @@ function Sample(
         sampler,
         target,
         n;
-        fol_name = fol_name,
-        file_name = file_name,
         kwargs...,
     )
-end
-
-function _make_sample(transition::Transition)
-    return [transition.θ; transition.ϵ; transition.δE; transition.ℓ]
 end
 
 """
@@ -242,7 +242,7 @@ function Sample(
     file_chunk=10,
     fol_name = ".",
     file_name = "samples",
-    progress = true,
+    include_latent = false,
     kwargs...,
 )
     io = open(joinpath(fol_name, "VarNames.txt"), "w") do io
@@ -263,7 +263,7 @@ function Sample(
         bijector = target.inv_transform,
         kwargs...)
 
-    sample = _make_sample(transition)
+    sample = _make_sample(transition; include_latent = include_latent)
     samples = similar(sample, (length(sample), Int(floor(n/thinning))))
 
     pbar = Progress(n, (progress ? 0 : Inf), "Sampling: ")
@@ -279,7 +279,7 @@ function Sample(
                 )
             if mod(i, thinning)==0
                 j = Int(floor(i/thinning))
-                samples[:,j] = sample = _make_sample(transition)
+                samples[:,j] = sample = _make_sample(transition; include_latent = include_latent)
                 if chain_file !== nothing      
                     push!(chain_file, sample)
                 end
