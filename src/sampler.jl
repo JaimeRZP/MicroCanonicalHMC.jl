@@ -1,26 +1,20 @@
 mutable struct Hyperparameters{T}
     eps::T
     L::T
-    nu::T
-    lambda_c::T
     sigma::AbstractVector{T}
+    lambda_c::T
     gamma::T
     sigma_xi::T
-    Weps::T
-    Feps::T
 end
 
 function Hyperparameters(; kwargs...)
     eps = get(kwargs, :eps, 0.0)
     L = get(kwargs, :L, 0.0)
-    nu = get(kwargs, :nu, 0.0)
     sigma = get(kwargs, :sigma, [0.0])
     lambda_c = get(kwargs, :lambda_c, 0.0)
     gamma = get(kwargs, :gamma, 0.0)
     sigma_xi = get(kwargs, :sigma_xi, 0.0)
-    Weps = get(kwargs, :Weps, 0.0)
-    Feps = get(kwargs, :Feps, 0.0)
-    return Hyperparameters(eps, L, nu, lambda_c, sigma, gamma, sigma_xi, Weps, Feps)
+    return Hyperparameters(eps, L, sigma, lambda_c, gamma, sigma_xi)
 end
 
 mutable struct MCHMCSampler <: AbstractMCMC.AbstractSampler
@@ -108,6 +102,8 @@ struct MCHMCState{T}
     l::T
     g::Vector{T}
     dE::T
+    Weps::T
+    Feps::T
     h::Hamiltonian
 end
 
@@ -118,11 +114,10 @@ struct Transition{T}
     ℓ::T
 end
 
-function Transition(
-    state::MCHMCState{T},
-    hp::Hyperparameters{T},
-    bijector) where {T}
-    eps = (hp.Feps / hp.Weps)^(-1 / 6)
+Transition(state::MCHMCState) = Transition(state, NoTransform)
+
+function Transition(state::MCHMCState{T}, bijector) where {T}
+    eps = (state.Feps / state.Weps)^(-1 / 6)
     sample = bijector(state.x)[:]
     return Transition(sample, T(eps), state.dE, -state.l)
 end
@@ -147,9 +142,12 @@ function Step(
     d = length(init_params)
     l, g = -1 .* h.∂lπ∂θ(init_params)
     u = Random_unit_vector(rng, d, T)
-    state = MCHMCState{T}(rng, 0, init_params, u, l, g, T(0.0), h)
+    eps = sampler.hyperparameters.eps
+    Weps = T(1e-5)
+    Feps = T(Weps * eps^(1 / 6))
+    state = MCHMCState{T}(rng, 0, init_params, u, l, g, T(0.0), Weps, Feps, h)
     state = tune_hyperparameters(rng, sampler, state; kwargs...)
-    transition = Transition(state, sampler.hyperparameters, bijector)
+    transition = Transition(state, bijector)
     return transition, state
 end
 
@@ -164,9 +162,9 @@ function Step(
     dialog = get(kwargs, :dialog, false)
 
     eps = sampler.hyperparameters.eps
-    Weps = sampler.hyperparameters.Weps
-    Feps = sampler.hyperparameters.Feps
-    nu = sampler.hyperparameters.nu
+    Feps = state.Feps
+    Weps = state.Weps
+    L = sampler.hyperparameters.L
     sigma_xi = sampler.hyperparameters.sigma_xi
     gamma = sampler.hyperparameters.gamma
 
@@ -175,6 +173,7 @@ function Step(
     # Hamiltonian step
     xx, uu, ll, gg, kinetic_change = sampler.hamiltonian_dynamics(sampler, state)
     # Langevin-like noise
+    nu = eval_nu(eps, L, length(xx))
     uuu = Partially_refresh_momentum(rng, nu, uu)
     dEE = T(kinetic_change + ll - state.l)
 
@@ -187,18 +186,14 @@ function Step(
         # are much larger on much smaller than the desired one.        
         w = exp(-(1/2) * (log(xi) / (6 * sigma_xi))^2)
         # Kalman update the linear combinations
-        new_Feps = gamma * Feps + w * (xi / eps^6)
-        new_Weps = gamma * Weps + w
-        new_eps = (Feps / Weps)^(-1 / 6)
-
-        sampler.hyperparameters.Feps = T(new_Feps)
-        sampler.hyperparameters.Weps = T(new_Weps)
-        sampler.hyperparameters.eps = T(new_eps)
-        tune_nu!(sampler, d)
+        Feps = T(gamma * Feps + w * (xi / eps^6))
+        Weps = T(gamma * Weps + w)
+        eps  = T((Feps / Weps)^(-1 / 6))
+        sampler.hyperparameters.eps = eps
     end
 
-    state = MCHMCState(rng, state.i + 1, xx, uuu, ll, gg, dEE, state.h)
-    transition = Transition(state, sampler.hyperparameters, bijector)
+    state = MCHMCState(rng, state.i + 1, xx, uuu, ll, gg, dEE, Weps, Feps, state.h)
+    transition = Transition(state, bijector)
     return transition, state
 end
 

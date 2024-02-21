@@ -13,12 +13,6 @@ end
 function init_hyperparameters!(sampler::MCHMCSampler, T::Type, d::Int)
     init_hp = sampler.hyperparameters
 
-    if init_hp.sigma == [0.0]
-        sigma = ones(T, d)
-    else
-        sigma = T.(init_hp.sigma)
-    end
-
     if init_hp.eps == 0.0
         eps = T((1/2))
     else
@@ -29,6 +23,12 @@ function init_hyperparameters!(sampler::MCHMCSampler, T::Type, d::Int)
         L = T(sqrt(d))
     else
         L = T(init_hp.L)
+    end
+
+    if init_hp.sigma == [0.0]
+        sigma = ones(T, d)
+    else
+        sigma = T.(init_hp.sigma)
     end
 
     if init_hp.lambda_c == 0.0
@@ -49,15 +49,7 @@ function init_hyperparameters!(sampler::MCHMCSampler, T::Type, d::Int)
         sigma_xi = T(init_hp.sigma_xi)
     end
 
-    if init_hp.Weps == 0.0
-        Weps = T(1e-5)
-    else
-        Weps = T(init_hp.Weps)
-    end
-
-    Feps = T(Weps * eps^(1/6))
-    nu = eval_nu(eps, L, d)
-    new_hp = Hyperparameters(eps, L, nu, lambda_c, sigma, gamma, sigma_xi, Weps, Feps)
+    new_hp = Hyperparameters(eps, L, sigma, lambda_c, gamma, sigma_xi)
     sampler.hyperparameters = new_hp
 end
 
@@ -65,12 +57,6 @@ end
 function eval_nu(eps, L, d)
     nu = sqrt((exp(2 * eps / L) - 1) / d)
     return nu
-end
-
-function tune_nu!(sampler::MCHMCSampler, d::Int)
-    eps = sampler.hyperparameters.eps
-    L = sampler.hyperparameters.L
-    sampler.hyperparameters.nu = eval_nu(eps, L, d)
 end
 
 function tune_hyperparameters(
@@ -111,7 +97,6 @@ function tune_hyperparameters(
 
     @info string("eps: ", sampler.hyperparameters.eps)
     @info string("L: ", sampler.hyperparameters.L)
-    @info string("nu: ", sampler.hyperparameters.nu)
     @info string("sigma: ", sampler.hyperparameters.sigma)
     return state
 end
