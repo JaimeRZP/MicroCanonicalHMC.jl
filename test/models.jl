@@ -1,25 +1,4 @@
 @testset "Models" begin
-    @testset "Gaussian" begin
-        ################
-        ### Gaussian ###
-        ################
-        d = 20
-        k = 100
-        m = Vector(LinRange(1, 100, d))
-        e = 10 .^ LinRange(log10(1 / sqrt(k)), log10(sqrt(k)), d)
-        cov_matt = Diagonal(e)
-        target = GaussianTarget(m, cov_matt)
-
-        spl = MCHMC(10_000, 0.01; eps = sqrt(d),
-        tune_L = false, tune_sigma = false, adaptive=true)
-        samples_mchmc = Sample(spl, target, 100_000)
-        s1 = std(samples_mchmc, dims=2)[1:end-3]
-        m1 = mean(samples_mchmc, dims=2)[1:end-3]
-
-        @test mean((m1 .- m) ./ sqrt.(e)) ≈ 0.0 atol = 0.2
-        @test mean(s1 ./ sqrt.(e) .- 1) ≈ 0.0 atol = 0.2
-    end
-
     @testset "Rosembrok" begin
         ##################
         ### Rosembrock ### 

@@ -20,25 +20,6 @@ function CustomTarget(nlogp, grad_nlogp, θ_start::AbstractVector;
     return Target(d, Hamiltonian(nlogp, grad_nlogp), transform, inv_transform, θ_start, θ_names)
 end
 
-function GaussianTarget(d::Int; T::Type=Float64)
-    m = zeros(T, d)
-    s = Diagonal(ones(T, d))
-    return GaussianTarget(m, s; kwargs...)
-end
-
-function GaussianTarget(_mean::Vector{T}, _cov::AbstractMatrix{T}) where {T}
-    d = length(_mean)
-    _gaussian = MvNormal(_mean, _cov)
-    function ℓπ(θ::Vector{T}) where {T}
-        return T(logpdf(_gaussian, θ))
-    end
-    function ∂lπ∂θ(θ::Vector{T}) where {T}
-        return (T(logpdf(_gaussian, θ)), T.(gradlogpdf(_gaussian, θ)))
-    end
-    θ_start = T.(rand(MvNormal(zeros(d), ones(d))))
-    return CustomTarget(ℓπ, ∂lπ∂θ, θ_start)
-end
-
 function RosenbrockTarget(a::T, b::T, d::Int) where{T}
     function ℓπ(x::Vector{T}; a = a, b = b) where {T}
         a = T(a)

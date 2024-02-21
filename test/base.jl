@@ -62,12 +62,14 @@ end
 @testset "Init" begin
     d = 10
     m = zeros(d)
-    s = Diagonal(ones(d))
     rng = MersenneTwister(1234)
-    target = GaussianTarget(m, s)
+    a=1.0
+    b=10.0
+    target = RosenbrockTarget(a, b, d)
     spl = MCHMC(0, 0.001)
     _, init = MicroCanonicalHMC.Step(rng, spl, target.h, m)
     @test init.x == m
+    m[1:5] .= -1.0
     @test init.g == m
     @test init.dE == 0
     @test init.Feps == 0.0	
@@ -76,10 +78,10 @@ end
 
 @testset "Step" begin
     d = 10
-    m = zeros(d)
-    s = Diagonal(ones(d))
     rng = MersenneTwister(1234)
-    target = GaussianTarget(m, s)
+    a=1.0
+    b=10.0
+    target = RosenbrockTarget(a, b, d)
     spl = MCHMC(0, 0.001; eps = 0.01, L = 0.1, sigma = ones(d))
     aspl = MCHMC(0, 0.001; eps = 0.01, L = 0.1, sigma = ones(d), adaptive = true)
     _, init = MicroCanonicalHMC.Step(rng, spl, target.h, target.θ_start)

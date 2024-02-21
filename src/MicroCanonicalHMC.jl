@@ -1,9 +1,9 @@
 module MicroCanonicalHMC
 
-using LinearAlgebra, Statistics, Adapt, Random, DataFrames, HDF5,
+using LinearAlgebra, Statistics, Adapt, Random, HDF5,
     LogDensityProblemsAD, LogDensityProblems, ForwardDiff,
-    AbstractMCMC, MCMCChains, MCMCDiagnosticTools, Distributed,
-    Distributions, DistributionsAD, ProgressMeter, Markdown
+    AbstractMCMC, MCMCChains, MCMCDiagnosticTools,
+    Distributions, ProgressMeter, Markdown
 
 export Settings, MCHMC, Sample, Step, Summarize,
     TuringTarget, GaussianTarget, RosenbrockTarget, CustomTarget
