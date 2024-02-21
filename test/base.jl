@@ -50,7 +50,7 @@ end
 @testset "Partially_refresh_momentum" begin
     d = 10
     rng = MersenneTwister(0)
-    u = MicroCanonicalHMC.Random_unit_vector(rng, d)
+    u = MicroCanonicalHMC.Random_unit_vector(rng, ones(d))
     @test length(u) == d
     @test isapprox(norm(u), 1.0, rtol = 0.0000001)
 
