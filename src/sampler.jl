@@ -274,7 +274,7 @@ function Sample(
                     rng,
                     sampler,
                     state;
-                    bijector = target.transform,
+                    bijector = target.inv_transform,
                     kwargs...,
                 )
             if mod(i, thinning)==0
