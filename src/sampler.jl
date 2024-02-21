@@ -266,7 +266,7 @@ function Sample(
     sample = _make_sample(transition; include_latent = include_latent)
     samples = similar(sample, (length(sample), Int(floor(n/thinning))))
 
-    pbar = Progress(n, (progress ? 0 : Inf), "Sampling: ")
+    pbar = Progress(n; desc="Sampling: ")
 
     write_chain(file_name, size(samples)..., eltype(sample), file_chunk) do chain_file
         for i in 1:n

@@ -63,7 +63,6 @@ function tune_hyperparameters(
     rng::AbstractRNG,
     sampler::MCHMCSampler,
     state::MCHMCState{T};
-    progress = true,
     kwargs...,
 ) where {T}
     ### Init Hyperparameters ###
@@ -73,7 +72,7 @@ function tune_hyperparameters(
 
     # Tuning
     xs = adapt(Array, state.x[:]) 
-    pbar = Progress(sampler.nadapt, (progress ? 0 : Inf), "Tuning: ")
+    pbar = Progress(sampler.nadapt; desc="Tuning: ")
     for i = 1:sampler.nadapt
         _, state = Step(rng, sampler, state; adaptive = sampler.tune_eps, kwargs...)
         xs = [xs adapt(Array, state.x[:])]
