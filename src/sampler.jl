@@ -265,12 +265,11 @@ function Sample(
 
     sample = _make_sample(transition)
     samples = similar(sample, (length(sample), Int(floor(n/thinning))))
-    samples[:, 1] .= sample
 
     pbar = Progress(n, (progress ? 0 : Inf), "Sampling: ")
 
     write_chain(file_name, size(samples)..., eltype(sample), file_chunk) do chain_file
-        for i in 2:n
+        for i in 1:n
             transition, state = Step(
                     rng,
                     sampler,
