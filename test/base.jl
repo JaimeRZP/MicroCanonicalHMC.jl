@@ -70,8 +70,8 @@ end
     @test init.x == m
     @test init.g == m
     @test init.dE == 0
-    @test spl.hyperparameters.Feps ==  1.0e-5 * 0.5^(1/6)	
-    @test spl.hyperparameters.Weps == 1.0e-5
+    @test init.Feps == 0.0	
+    @test init.Weps == 1.0e-5
 end
 
 @testset "Step" begin
