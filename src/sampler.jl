@@ -113,9 +113,9 @@ end
 
 Transition(state::MCHMCState) = Transition(state, NoTransform)
 
-function Transition(state::MCHMCState{T}, bijector) where {T}
+function Transition(state::MCHMCState{T}, inv_bijector) where {T}
     eps = (state.Feps / state.Weps)^(-1 / 6)
-    sample = bijector(state.x)[:]
+    sample = inv_bijector(state.x)[:]
     return Transition(sample, T(eps), state.dE, -state.l)
 end
 
@@ -132,7 +132,7 @@ function Step(
     sampler::MCHMCSampler,
     h::Hamiltonian,
     init_params::AbstractVector{T};
-    bijector = NoTransform,
+    inv_bijector = NoTransform,
     kwargs...,
 ) where {T}
     kwargs = Dict(kwargs)
@@ -144,7 +144,7 @@ function Step(
     Feps = T(Weps * eps^(1 / 6))
     state = MCHMCState{T}(rng, 0, init_params, u, l, g, T(0.0), Weps, Feps, h)
     state = tune_hyperparameters(rng, sampler, state; kwargs...)
-    transition = Transition(state, bijector)
+    transition = Transition(state, inv_bijector)
     return transition, state
 end
 
@@ -194,11 +194,11 @@ function Step(
     return transition, state
 end
 
-function _make_sample(transition::Transition; include_latent=false)
+function _make_sample(transition::Transition; bijector=NoTransform, include_latent=false)
     if include_latent
-        sample = [transition.θ; transition.ϵ; transition.δE; transition.ℓ]
+        sample = [transition.θ[:]; bijector(transition.θ)[:]; transition.ϵ; transition.δE; transition.ℓ]
     else
-        sample = [transition.θ; transition.ϵ; transition.δE; transition.ℓ]
+        sample = [transition.θ[:]; transition.ϵ; transition.δE; transition.ℓ]
     end
     return sample
 end
@@ -260,16 +260,15 @@ function Sample(
         sampler,
         target.h,
         trans_init_params;
-        bijector = target.inv_transform,
+        inv_bijector = target.inv_transform,
         kwargs...)
 
-    sample = _make_sample(transition; include_latent = include_latent)
+    sample = _make_sample(transition; bijector=target.transform, include_latent=include_latent)
     samples = similar(sample, (length(sample), Int(floor(n/thinning))))
-
+    samples[:,1] = sample 
     pbar = Progress(n; desc="Sampling: ")
-
     write_chain(file_name, size(samples)..., eltype(sample), file_chunk) do chain_file
-        for i in 1:n
+        for i in 2:n
             transition, state = Step(
                     rng,
                     sampler,
