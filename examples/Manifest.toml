@@ -405,12 +405,6 @@ git-tree-sha1 = "8da84edb865b0b5b0100c0666a9bc9a0b71c553c"
 uuid = "9a962f9c-6df0-11e9-0e5d-c546b8b5ee8a"
 version = "1.15.0"
 
-[[deps.DataFrames]]
-deps = ["Compat", "DataAPI", "DataStructures", "Future", "InlineStrings", "InvertedIndices", "IteratorInterfaceExtensions", "LinearAlgebra", "Markdown", "Missings", "PooledArrays", "PrecompileTools", "PrettyTables", "Printf", "REPL", "Random", "Reexport", "SentinelArrays", "SortingAlgorithms", "Statistics", "TableTraits", "Tables", "Unicode"]
-git-tree-sha1 = "04c738083f29f86e62c8afc341f0967d8717bdb8"
-uuid = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-version = "1.6.1"
-
 [[deps.DataStructures]]
 deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
 git-tree-sha1 = "ac67408d9ddf207de5cfa9a97e114352430f01ed"
@@ -796,12 +790,6 @@ version = "0.1.4"
 git-tree-sha1 = "4da0f88e9a39111c2fa3add390ab15f3a44f3ca3"
 uuid = "22cec73e-a1b8-11e9-2c92-598750a2cf9c"
 version = "0.3.1"
-
-[[deps.InlineStrings]]
-deps = ["Parsers"]
-git-tree-sha1 = "9cc2baf75c6d09f9da536ddf58eb2f29dedaf461"
-uuid = "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
-version = "1.4.0"
 
 [[deps.InplaceOps]]
 deps = ["LinearAlgebra", "Test"]
@@ -1212,12 +1200,12 @@ uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
 version = "2.28.2+0"
 
 [[deps.MicroCanonicalHMC]]
-deps = ["AbstractMCMC", "Adapt", "DataFrames", "Distributed", "Distributions", "DistributionsAD", "DocStringExtensions", "DynamicPPL", "ForwardDiff", "HDF5", "LinearAlgebra", "LogDensityProblems", "LogDensityProblemsAD", "MCMCChains", "MCMCDiagnosticTools", "Markdown", "ProgressMeter", "Random", "Revise", "Statistics"]
-git-tree-sha1 = "ee9f297d7a71961e363779a0755a58590339bb85"
+deps = ["AbstractMCMC", "Adapt", "Distributions", "ForwardDiff", "HDF5", "LinearAlgebra", "LogDensityProblems", "LogDensityProblemsAD", "MCMCChains", "MCMCDiagnosticTools", "Markdown", "ProgressMeter", "Random", "Statistics"]
+git-tree-sha1 = "d8c343e6444eeec9ee52420f0266ce9f419f8d2b"
 repo-rev = "master"
 repo-url = "https://github.com/JaimeRZP/MicroCanonicalHMC.jl.git"
 uuid = "234d2aa0-2291-45f7-9047-6fa6f316b0a8"
-version = "0.1.1"
+version = "0.1.2"
 
 [[deps.MicroCollections]]
 deps = ["BangBang", "InitialValues", "Setfield"]
@@ -1436,12 +1424,6 @@ deps = ["BitTwiddlingConvenienceFunctions", "CPUSummary", "IfElse", "Static", "T
 git-tree-sha1 = "240d7170f5ffdb285f9427b92333c3463bf65bf6"
 uuid = "1d0040c9-8b98-4ee7-8388-3f51789ca0ad"
 version = "0.2.1"
-
-[[deps.PooledArrays]]
-deps = ["DataAPI", "Future"]
-git-tree-sha1 = "36d8b4b899628fb92c2749eb488d884a926614d3"
-uuid = "2dfb63ee-cc39-5dd5-95bd-886bf059d720"
-version = "1.4.3"
 
 [[deps.PositiveFactorizations]]
 deps = ["LinearAlgebra"]
@@ -1693,12 +1675,6 @@ version = "0.3.7"
 git-tree-sha1 = "a8e18eb383b5ecf1b5e6fc237eb39255044fd92b"
 uuid = "30f210dd-8aff-4c5f-94ba-8e64358c1161"
 version = "3.0.0"
-
-[[deps.SentinelArrays]]
-deps = ["Dates", "Random"]
-git-tree-sha1 = "0e7508ff27ba32f26cd459474ca2ede1bc10991f"
-uuid = "91c51154-3ec4-41a3-a24f-3f23e20d615c"
-version = "1.4.1"
 
 [[deps.Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"

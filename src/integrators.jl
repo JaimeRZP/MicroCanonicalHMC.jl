@@ -25,7 +25,7 @@ function Leapfrog(
     #full step in x
     zz = z .+ eps .* uu
     xx = zz .* sigma # rotate back to parameter space
-    ll, gg = -1 .* h.∂lπ∂θ(xx)
+    ll, gg = -1 .* h.∂lπ∂x(xx)
 
     #half step in momentum
     uu, dr2 = Update_momentum(d, eps * T(0.5), gg .* sigma, uu)
@@ -66,7 +66,7 @@ function Minimal_norm(
     #T (postion update)
     zz = z .+ (T(0.50) * eps) .* uu
     xx = sigma .* zz
-    ll, gg = -1 .* h.∂lπ∂θ(xx)
+    ll, gg = -1 .* h.∂lπ∂x(xx)
 
     #V (momentum update)
     uu, dr2 = Update_momentum(d, eps * (1 - 2 * lambda_c), gg .* sigma, uu)
@@ -74,7 +74,7 @@ function Minimal_norm(
     #T (postion update)
     zz = zz .+ (T(0.5) * eps) .* uu
     xx = zz .* sigma
-    ll, gg = -1 .* h.∂lπ∂θ(xx)
+    ll, gg = -1 .* h.∂lπ∂x(xx)
 
     #V (momentum update)
     uu, dr3 = Update_momentum(d, eps * lambda_c, gg .* sigma, uu)

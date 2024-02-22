@@ -137,7 +137,7 @@ function Step(
 ) where {T}
     kwargs = Dict(kwargs)
     d = length(x)
-    l, g = -1 .* h.∂lπ∂θ(x)
+    l, g = -1 .* h.∂lπ∂x(x)
     u = Random_unit_vector(rng, x)
     eps = sampler.hyperparameters.eps
     Weps = T(1e-5)
@@ -273,12 +273,13 @@ function Sample(
                     rng,
                     sampler,
                     state;
-                    transform = target.inv_transform,
+                    inv_transform = target.inv_transform,
                     kwargs...,
                 )
             if mod(i, thinning)==0
                 j = Int(floor(i/thinning))
-                samples[:,j] = sample = _make_sample(transition; include_latent = include_latent)
+                samples[:,j] = sample = _make_sample(transition;
+                    transform=target.transform, include_latent=include_latent)
                 if chain_file !== nothing      
                     push!(chain_file, sample)
                 end

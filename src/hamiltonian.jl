@@ -1,10 +1,10 @@
 struct Hamiltonian
-    ℓπ::Any
-    ∂lπ∂θ::Any
+    ℓπx::Any
+    ∂lπ∂x::Any
 end
 
-function Hamiltonian(ℓ)
-    ℓπ(x) = LogDensityProblems.logdensity(ℓ, x)
-    ∂lπ∂θ(x) = LogDensityProblems.logdensity_and_gradient(ℓ, x)
-    return Hamiltonian(ℓπ, ∂lπ∂θ)
+function Hamiltonian(ℓπ, ∂lπ∂θ, inv_transform)
+    ℓπx(x) = ℓπ(inv_transform(x))
+    ∂lπ∂x(x) = ∂lπ∂θ(inv_transform(x))
+    return Hamiltonian(ℓπx, ∂lπ∂x)
 end

@@ -6,8 +6,8 @@
 
     @test eltype(target_default.θ_start) == Float64
     @test eltype(target_T.θ_start) == T
-    @test eltype(target_default.h.ℓπ(target_default.θ_start)) == Float64
-    @test eltype(target_T.h.ℓπ(target_T.θ_start)) == T
+    @test eltype(target_default.h.ℓπx(target_default.θ_start)) == Float64
+    @test eltype(target_T.h.ℓπx(target_T.θ_start)) == T
 
     spl = MCHMC(0, 0.01)
     @test eltype(spl.hyperparameters.eps) == Float64
@@ -77,7 +77,7 @@ end
 end
 
 @testset "Step" begin
-    d = 10
+    d = 2
     rng = MersenneTwister(1234)
     a=1.0
     b=10.0
@@ -90,4 +90,32 @@ end
     @test spl.hyperparameters.eps == 0.01
     @test aspl.hyperparameters.eps != 0.01
     @test step.x == astep.x
+end
+
+@testset "Transformations" begin
+    d = 4
+    rng = MersenneTwister(1234)
+    a=1.0
+    b=10.0
+    target = RosenbrockTarget(a, b, d;
+    transform = x -> 10 .* x,
+    inv_transform = x -> x ./ 10)
+    spl = MCHMC(0, 0.001; eps = 0.01, L = 0.1, sigma = ones(d))
+
+    x_start = target.transform(target.θ_start)
+    @test x_start == 10 .* target.θ_start
+
+    t, s = MicroCanonicalHMC.Step(rng, spl, target.h, x_start;
+        inv_transform=target.inv_transform)
+    @test t.θ ≈ target.inv_transform(s.x) atol = 0.0001
+    @test t.θ ≈ target.θ_start atol = 0.0001
+
+    samples = Sample(spl, target, 2; include_latent=true)
+    θ = samples[1:d, 1][:]
+    x = samples[d+1:2d, 1][:]
+    @test θ ≈ target.θ_start atol = 0.0001
+    @test x ≈ x_start atol = 0.0001
+    θ = samples[1:d, 2][:]
+    x = samples[d+1:2d, 2][:]
+    @test θ ≈ target.inv_transform(x) atol = 0.0001
 end
