@@ -21,16 +21,16 @@ function CustomTarget(nlogp, grad_nlogp, θ_start::AbstractVector;
 end
 
 function RosenbrockTarget(a::T, b::T, d::Int) where{T}
-    function ℓπ(x::AbstractVector{T}; a = a, b = b) where {T}
+    function ℓπ(θ::AbstractVector{T}; a = a, b = b) where {T}
         a = T(a)
         b = T(b)
-        x1 = x[1:Int(d / 2)]
-        x2 = x[Int(d / 2)+1:end]
-        m = @.((a - x1)^2 + b * (x2 - x1^2)^2)
+        θ1 = θ[1:Int(d / 2)]
+        θ2 = θ[Int(d / 2)+1:end]
+        m = @.((a - θ1)^2 + b * (θ2 - θ1^2)^2)
         return -T(1/2) * sum(m)
     end
-    function ∂lπ∂θ(x::AbstractVector{T}) where {T}
-        return ℓπ(x), ForwardDiff.gradient(ℓπ, x)
+    function ∂lπ∂θ(θ::AbstractVector{T}) where {T}
+        return ℓπ(θ), ForwardDiff.gradient(ℓπ, θ)
     end
     θ_start = T.(rand(MvNormal(zeros(d), ones(d))))
     return CustomTarget(ℓπ, ∂lπ∂θ, θ_start)

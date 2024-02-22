@@ -113,10 +113,10 @@ end
 
 Transition(state::MCHMCState) = Transition(state, NoTransform)
 
-function Transition(state::MCHMCState{T}, inv_bijector) where {T}
+function Transition(state::MCHMCState{T}, inv_transform) where {T}
     eps = (state.Feps / state.Weps)^(-1 / 6)
-    sample = inv_bijector(state.x)[:]
-    return Transition(sample, T(eps), state.dE, -state.l)
+    θ = inv_transform(state.x)
+    return Transition(θ, T(eps), state.dE, -state.l)
 end
 
 function Step(
@@ -131,20 +131,20 @@ function Step(
     rng::AbstractRNG,
     sampler::MCHMCSampler,
     h::Hamiltonian,
-    init_params::AbstractVector{T};
-    inv_bijector = NoTransform,
+    x::AbstractVector{T};
+    inv_transform = NoTransform,
     kwargs...,
 ) where {T}
     kwargs = Dict(kwargs)
-    d = length(init_params)
-    l, g = -1 .* h.∂lπ∂θ(init_params)
-    u = Random_unit_vector(rng, init_params)
+    d = length(x)
+    l, g = -1 .* h.∂lπ∂θ(x)
+    u = Random_unit_vector(rng, x)
     eps = sampler.hyperparameters.eps
     Weps = T(1e-5)
     Feps = T(Weps * eps^(1 / 6))
-    state = MCHMCState{T}(rng, 0, init_params, u, l, g, T(0.0), Weps, Feps, h)
+    state = MCHMCState{T}(rng, 0, x, u, l, g, T(0.0), Weps, Feps, h)
     state = tune_hyperparameters(rng, sampler, state; kwargs...)
-    transition = Transition(state, inv_bijector)
+    transition = Transition(state, inv_transform)
     return transition, state
 end
 
@@ -152,7 +152,7 @@ function Step(
     rng::AbstractRNG,
     sampler::MCHMCSampler,
     state::MCHMCState{T};
-    bijector = NoTransform,
+    inv_transform = NoTransform,
     kwargs...,
 ) where {T}
     """One step of the Langevin-like dynamics."""
@@ -190,13 +190,13 @@ function Step(
     end
 
     state = MCHMCState(rng, state.i + 1, xx, uuu, ll, gg, dEE, Weps, Feps, state.h)
-    transition = Transition(state, bijector)
+    transition = Transition(state, inv_transform)
     return transition, state
 end
 
-function _make_sample(transition::Transition; bijector=NoTransform, include_latent=false)
+function _make_sample(transition::Transition; transform=NoTransform, include_latent=false)
     if include_latent
-        sample = [transition.θ[:]; bijector(transition.θ)[:]; transition.ϵ; transition.δE; transition.ℓ]
+        sample = [transition.θ[:]; transform(transition.θ)[:]; transition.ϵ; transition.δE; transition.ℓ]
     else
         sample = [transition.θ[:]; transition.ϵ; transition.δE; transition.ℓ]
     end
@@ -251,19 +251,19 @@ function Sample(
 
     ### initial conditions ###
     if init_params == nothing
-        init_params = target.θ_start
+        θ_start = target.θ_start
     end
-    trans_init_params = target.transform(init_params)
+    x_start = target.transform(θ_start)
 
     transition, state = Step(
         rng,
         sampler,
         target.h,
-        trans_init_params;
-        inv_bijector = target.inv_transform,
+        x_start;
+        inv_transform = target.inv_transform,
         kwargs...)
 
-    sample = _make_sample(transition; bijector=target.transform, include_latent=include_latent)
+    sample = _make_sample(transition; transform=target.transform, include_latent=include_latent)
     samples = similar(sample, (length(sample), Int(floor(n/thinning))))
     samples[:,1] = sample 
     pbar = Progress(n; desc="Sampling: ")
@@ -273,7 +273,7 @@ function Sample(
                     rng,
                     sampler,
                     state;
-                    bijector = target.inv_transform,
+                    transform = target.inv_transform,
                     kwargs...,
                 )
             if mod(i, thinning)==0
