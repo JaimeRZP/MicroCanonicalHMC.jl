@@ -93,9 +93,5 @@ function tune_hyperparameters(
         ])
     end
     ProgressMeter.finish!(pbar)
-
-    @info string("eps: ", sampler.hyperparameters.eps)
-    @info string("L: ", sampler.hyperparameters.L)
-    @info string("sigma: ", sampler.hyperparameters.sigma)
     return state
 end
