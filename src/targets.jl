@@ -25,11 +25,15 @@ function CustomTarget(nlogp, grad_nlogp, θ_start::AbstractVector;
     if θ_names==nothing
         θ_names = [string("θ_", i) for i=1:d]
     end
-    return Target(d, Hamiltonian(nlogp, grad_nlogp, inv_transform), transform, inv_transform, θ_start, θ_names)
+    return Target(d, Hamiltonian(nlogp, grad_nlogp), transform, inv_transform, θ_start, θ_names)
 end
 
-function RosenbrockTarget(a::T, b::T, d::Int; kwargs...) where{T}
-    function ℓπ(θ::AbstractVector{T}; a = a, b = b) where {T}
+function RosenbrockTarget(a::T, b::T, d::Int;
+    transform=NoTransform,
+    inv_transform=NoTransform,
+    kwargs...) where{T}
+    function ℓπ(x::AbstractVector{T}; a = a, b = b) where {T}
+        θ = inv_transform(x)
         a = T(a)
         b = T(b)
         θ1 = θ[1:Int(d / 2)]
@@ -37,9 +41,15 @@ function RosenbrockTarget(a::T, b::T, d::Int; kwargs...) where{T}
         m = @.((a - θ1)^2 + b * (θ2 - θ1^2)^2)
         return -T(1/2) * sum(m)
     end
-    function ∂lπ∂θ(θ::AbstractVector) 
-        return ℓπ(θ), ForwardDiff.gradient(ℓπ, θ)
+    function ∂lπ∂x(x::AbstractVector) 
+        return ℓπ(x), ForwardDiff.gradient(ℓπ, x)
     end
     θ_start = T.(rand(MvNormal(zeros(d), ones(d))))
-    return CustomTarget(ℓπ, ∂lπ∂θ, θ_start; kwargs...)
+    return CustomTarget(
+        ℓπ,
+        ∂lπ∂x,
+        θ_start;
+        transform=transform,
+        inv_transform=inv_transform,
+        kwargs...)
 end

@@ -96,10 +96,13 @@ end
     d = 4
     rng = MersenneTwister(1234)
     a=1.0
-    b=10.0
+    b=10.0       
+    Λ=10.0
+    transform(θ) = Λ .* θ
+    inv_transform(x) = x ./ Λ
     target = RosenbrockTarget(a, b, d;
-    transform = x -> 10 .* x,
-    inv_transform = x -> x ./ 10)
+        transform = transform,
+        inv_transform = inv_transform)
     spl = MCHMC(0, 0.001; eps = 0.01, L = 0.1, sigma = ones(d))
 
     x_start = target.transform(target.θ_start)

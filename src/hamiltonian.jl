@@ -3,8 +3,8 @@ struct Hamiltonian
     ∂lπ∂x::Any
 end
 
-function Hamiltonian(ℓπ, ∂lπ∂θ, inv_transform)
-    ℓπx(x) = ℓπ(inv_transform(x))
-    ∂lπ∂x(x) = ∂lπ∂θ(inv_transform(x))
-    return Hamiltonian(ℓπx, ∂lπ∂x)
+function Hamiltonian(ℓ)
+    ℓπ(x) = LogDensityProblems.logdensity(ℓ, x)
+    ∂lπ∂x(x) = LogDensityProblems.logdensity_and_gradient(ℓ, x)
+    return Hamiltonian(ℓπ, ∂lπ∂x)
 end
