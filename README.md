@@ -6,6 +6,11 @@
 
 A Julia implementation of [Micro-Canonical HMC](https://arxiv.org/pdf/2212.08549.pdf). You can checkout the JAX version [here](https://github.com/JakobRobnik/MicroCanonicalHMC). 
 
+## Features
+
+- GPU support through CUDA.jl
+- Integrated within Turing.jl ecosystem.
+
 ## How to use it
 
 ### Define the Model
