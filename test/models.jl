@@ -1,4 +1,29 @@
 @testset "Models" begin
+    @testset "Init Params" begin
+        ##################
+        ### Rosembrock ### 
+        ##################
+        T = Float64
+        d=2
+        a=T(1.0)
+        b=T(1.0)
+        Λ=T(3.0)
+        init_params = T.([0.1, 0.1])
+        transform(θ) = Λ .* θ
+        inv_transform(x) = x ./ Λ
+        target = RosenbrockTarget(a, b, d;
+            transform = transform,
+            inv_transform = inv_transform)
+        spl = MCHMC(0, 0.01;
+        L = sqrt(2), sigma = ones(target.d),
+        tune_L = false, tune_sigma = false, adaptive = true)
+        samples = Sample(spl, target, 2; 
+            init_params = init_params)
+        θ_1 = samples[:, 1][1:2]
+        println(θ_1)
+        @test θ_1 ≈ init_params atol = transform(0.000000001)
+    end
+
     @testset "Rosembrok" begin
         ##################
         ### Rosembrock ### 
