@@ -252,6 +252,8 @@ function Sample(
     ### initial conditions ###
     if init_params == nothing
         θ_start = target.θ_start
+    else 
+        θ_start = init_params
     end
     x_start = target.transform(θ_start)
 
