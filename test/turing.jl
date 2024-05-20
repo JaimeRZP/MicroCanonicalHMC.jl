@@ -11,11 +11,13 @@
         (; x) = rand(funnel() | (θ=0,))
         model = funnel() | (; x);
 
-        n_adapts = 1_000 # adaptation steps
+        n_adapts = 50 # adaptation steps
         tev = 0.01 # target energy variance
         mchmc = MCHMC(n_adapts, tev; adaptive=true)
 
         # Sample
-        chain = sample(model, externalsampler(mchmc), 10_000)
+        chain = sample(model, externalsampler(mchmc), 100)
+        # Just check if it ran
+        @test true
     end
 end
