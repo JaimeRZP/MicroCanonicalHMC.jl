@@ -5,7 +5,7 @@ using Random
 using Statistics
 using Turing
 
-#include("base.jl")
-#include("models.jl")
+include("base.jl")
+include("models.jl")
 include("turing.jl")
 
