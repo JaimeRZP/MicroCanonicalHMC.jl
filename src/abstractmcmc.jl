@@ -6,7 +6,6 @@ function AbstractMCMC.step(
     kwargs...,
 )
     logdensity = model.logdensity
-    logdensity = LogDensityProblemsAD.ADgradient(:ForwardDiff, logdensity)
     if init_params == nothing
         d = LogDensityProblems.dimension(logdensity)
         init_params = randn(rng, d)
