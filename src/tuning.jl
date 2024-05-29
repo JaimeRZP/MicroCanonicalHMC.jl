@@ -82,8 +82,11 @@ function tune_hyperparameters(
                 sampler.hyperparameters.sigma = sigma
             end
             if sampler.tune_L
-                sampler.hyperparameters.L =
-                    sqrt(mean(sigma .^ 2)) * sampler.hyperparameters.eps
+                ess, _ = Summarize(xs)
+                m_ess = mean(ess)
+                l = length(xs)/m_ess
+                eps = sampler.hyperparameters.eps
+                sampler.hyperparameters.L = 0.4*eps*l
             end
         end
         ProgressMeter.next!(pbar, showvalues = [
