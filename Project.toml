@@ -1,7 +1,7 @@
 name = "MicroCanonicalHMC"
 uuid = "234d2aa0-2291-45f7-9047-6fa6f316b0a8"
 authors = ["Jaime Ruiz Zapatero <jaimerz011235813@gmail.com>", "Marco Bonici", "Marius Millea"]
-version = "0.1.5"
+version = "0.1.6"
 
 [deps]
 AbstractMCMC = "80f14c24-f653-4e6a-9b94-39d6b0f70001"
