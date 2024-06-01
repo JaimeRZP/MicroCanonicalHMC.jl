@@ -72,11 +72,12 @@ function tune_hyperparameters(
 
     # Tuning
     xs = adapt(Array, state.x[:]) 
+    window = Int(sampler.nadapt / 10)
     pbar = Progress(sampler.nadapt; desc="Tuning: ")
     for i = 1:sampler.nadapt
         _, state = Step(rng, sampler, state; adaptive = sampler.tune_eps, kwargs...)
         xs = [xs adapt(Array, state.x[:])]
-        if mod(i, Int(sampler.nadapt / 500)) == 0
+        if mod(i, Int(sampler.nadapt / window)) == 0
             sigma = vec(std(xs, dims = 2))
             if sampler.tune_sigma
                 sampler.hyperparameters.sigma = sigma
