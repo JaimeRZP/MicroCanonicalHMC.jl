@@ -20,6 +20,7 @@ end
 mutable struct MCHMCSampler <: AbstractMCMC.AbstractSampler
     nadapt::Int
     TEV::Real
+    TAP::Real  # this isn't type stable
     adaptive::Bool
     tune_eps::Bool
     tune_L::Bool
@@ -32,12 +33,13 @@ end
 """
     MCHMC(
         nadapt::Int,
-        TEV::Real;
+        TEV::Real,
+        TAP::Real;
         kwargs...
     )
 Constructor for the MicroCanonical HMC (q=0 Hamiltonian) sampler
 """
-function MCHMC(nadapt::Int, TEV::Real;
+function MCHMC(nadapt::Int, TEV::Real, TAP::Real;
     integrator="LF",
     adaptive=false,
     tune_eps=true,
@@ -57,7 +59,7 @@ function MCHMC(nadapt::Int, TEV::Real;
         println(string("integrator = ", integrator, "is not a valid option."))
     end
 
-    return MCHMCSampler(nadapt, TEV, adaptive, tune_eps, tune_L, tune_sigma, hyperparameters, hamiltonian_dynamics)
+    return MCHMCSampler(nadapt, TEV, TAP, adaptive, tune_eps, tune_L, tune_sigma, hyperparameters, hamiltonian_dynamics)
 end
 
 function Random_unit_vector(rng::AbstractRNG, x::AbstractVector{T}; _normalize = true) where {T}
@@ -166,6 +168,7 @@ function Step(
     gamma = sampler.hyperparameters.gamma
 
     TEV = sampler.TEV
+    TAP = sampler.TAP
 
     # Hamiltonian step
     xx, uu, ll, gg, kinetic_change = sampler.hamiltonian_dynamics(sampler, state)
@@ -188,6 +191,17 @@ function Step(
         eps  = T((Feps / Weps)^(-1 / 6))
         sampler.hyperparameters.eps = eps
     end
+
+    x, u, l, g, dE = state.x, state.u, state.l, state.g, state.dE
+    accept = log(rand()) < dEE
+    xx = @.(accept * xx + (1 - accept) * x)
+    ll = @.(accept * ll + (1 - accept) * l)
+    gg = @.(accept * gg + (1 - accept) * g)
+    dEE = @.(accept * dEE + (1 - accept) * dE)
+
+    uuu = @.(accept * uuu + (1 - accept) * u)
+
+
 
     state = MCHMCState(rng, state.i + 1, xx, uuu, ll, gg, dEE, Weps, Feps, state.h)
     transition = Transition(state, inv_transform)
