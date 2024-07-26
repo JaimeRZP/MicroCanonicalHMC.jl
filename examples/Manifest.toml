@@ -599,9 +599,9 @@ version = "1.14.3+3"
 
 [[deps.Hwloc_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "ca0f6bf568b4bfc807e7537f081c81e35ceca114"
+git-tree-sha1 = "5e19e1e4fa3e71b774ce746274364aef0234634e"
 uuid = "e33a78d0-f292-5ffc-b300-72abe9b543c8"
-version = "2.10.0+0"
+version = "2.11.1+0"
 
 [[deps.HypergeometricFunctions]]
 deps = ["DualNumbers", "LinearAlgebra", "OpenLibm_jll", "SpecialFunctions"]
@@ -883,9 +883,9 @@ version = "1.9.6"
 
 [[deps.MPICH_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "Hwloc_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "MPIPreferences", "TOML"]
-git-tree-sha1 = "4099bb6809ac109bfc17d521dad33763bcf026b7"
+git-tree-sha1 = "19d4bd098928a3263693991500d05d74dbdc2004"
 uuid = "7cb0a576-ebde-5e09-9194-50597f1243b4"
-version = "4.2.1+1"
+version = "4.2.2+0"
 
 [[deps.MPIPreferences]]
 deps = ["Libdl", "Preferences"]
@@ -921,9 +921,9 @@ version = "2.28.2+1"
 
 [[deps.MicroCanonicalHMC]]
 deps = ["AbstractMCMC", "Adapt", "Distributions", "ForwardDiff", "HDF5", "LinearAlgebra", "LogDensityProblems", "LogDensityProblemsAD", "MCMCChains", "MCMCDiagnosticTools", "Markdown", "ProgressMeter", "Random", "Statistics"]
-git-tree-sha1 = "e05f95a8256fdf83632f4ea3742f7fb43038a100"
+git-tree-sha1 = "99fd367f8b8fc9d479420d33e8f16f3dab3162f4"
 uuid = "234d2aa0-2291-45f7-9047-6fa6f316b0a8"
-version = "0.1.4"
+version = "0.1.6"
 
 [[deps.MicroCollections]]
 deps = ["Accessors", "BangBang", "InitialValues"]
@@ -1016,9 +1016,9 @@ version = "4.1.6+0"
 
 [[deps.OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "3da7367955dcc5c54c1ba4d402ccdc09a1a3e046"
+git-tree-sha1 = "a028ee3cb5641cccc4c24e90c36b0a4f7707bdf5"
 uuid = "458c3c95-2e84-50aa-8efc-19380b2a3a95"
-version = "3.0.13+1"
+version = "3.0.14+0"
 
 [[deps.OpenSpecFun_jll]]
 deps = ["Artifacts", "CompilerSupportLibraries_jll", "JLLWrappers", "Libdl", "Pkg"]

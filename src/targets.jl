@@ -54,38 +54,7 @@ function RosenbrockTarget(a::T, b::T, d::Int;
         kwargs...)
 end
 
-mutable struct TuringTarget <: Target
-    model::DynamicPPL.Model
-    d::Int
-    vsyms::Any
-    dists::Any
-    h::Hamiltonian
-    transform::Function
-    inv_transform::Function
-    prior_draw::Function
-end
-
-function _get_dists(vi)
-    mds = values(vi.metadata)
-    return [md.dists[1] for md in mds]
-end
-
-function _name_variables(vi, dist_lengths)
-    vsyms = keys(vi)
-    names = []
-    for (vsym, dist_length) in zip(vsyms, dist_lengths)
-        if dist_length == 1
-            name = [vsym]
-            append!(names, name)
-        else
-            name = [DynamicPPL.VarName(Symbol(vsym, i)) for i = 1:dist_length]
-            append!(names, name)
-        end
-    end
-    return names
-end
-
-TuringTarget(model; kwargs...) = begin
+function TuringTarget(model; kwargs...)
     ctxt = model.context
     vi = DynamicPPL.VarInfo(model, ctxt)
     vi_t = Turing.link!!(vi, model)
@@ -97,7 +66,6 @@ TuringTarget(model; kwargs...) = begin
     ℓ = LogDensityProblemsAD.ADgradient(DynamicPPL.LogDensityFunction(vi_t, model, ctxt))
     ℓπ(x) = LogDensityProblems.logdensity(ℓ, x)
     ∂lπ∂θ(x) = LogDensityProblems.logdensity_and_gradient(ℓ, x)
-    hamiltonian = Hamiltonian(ℓπ, ∂lπ∂θ)
     
     function _reshape_params(x::AbstractVector)
         xx = []
@@ -121,5 +89,8 @@ TuringTarget(model; kwargs...) = begin
         return vcat(x...)
     end
 
-    CustomTarget(d, hamiltonian, transform, inv_transform, θ_start, vsyms)
+    return CustomTarget(ℓπ, ∂lπ∂θ, θ_start;
+        transform=transform, 
+        inv_transform=inv_transform, 
+        θ_names=θ_names)
 end
