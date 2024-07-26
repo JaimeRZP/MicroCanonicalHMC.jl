@@ -66,6 +66,11 @@ function TuringTarget(model; kwargs...)
     ℓ = LogDensityProblemsAD.ADgradient(DynamicPPL.LogDensityFunction(vi_t, model, ctxt))
     ℓπ(x) = LogDensityProblems.logdensity(ℓ, x)
     ∂lπ∂θ(x) = LogDensityProblems.logdensity_and_gradient(ℓ, x)
+
+    function _get_dists(vi)
+        mds = values(vi.metadata)
+        return [md.dists[1] for md in mds]
+    end
     
     function _reshape_params(x::AbstractVector)
         xx = []
