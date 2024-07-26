@@ -72,7 +72,7 @@ function tune_hyperparameters(
 
     # Tuning
     xs = adapt(Array, state.x[:]) 
-    window = Int(sampler.nadapt / 100)
+    window = Int(sampler.nadapt / 10)
     pbar = Progress(sampler.nadapt; desc="Tuning: ")
     for i = 1:sampler.nadapt
         _, state = Step(rng, sampler, state; adaptive = sampler.tune_eps, kwargs...)
