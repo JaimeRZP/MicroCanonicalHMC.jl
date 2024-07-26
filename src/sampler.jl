@@ -104,6 +104,7 @@ struct MCHMCState{T}
     Weps::T
     Feps::T
     h::Hamiltonian
+    accept::Bool
 end
 
 struct Transition{T}
@@ -111,6 +112,7 @@ struct Transition{T}
     ϵ::T
     δE::T
     ℓ::T
+    accept::Bool
 end
 
 Transition(state::MCHMCState) = Transition(state, NoTransform)
@@ -118,7 +120,7 @@ Transition(state::MCHMCState) = Transition(state, NoTransform)
 function Transition(state::MCHMCState{T}, inv_transform) where {T}
     eps = (state.Feps / state.Weps)^(-1 / 6)
     θ = inv_transform(state.x)
-    return Transition(θ, T(eps), state.dE, -state.l)
+    return Transition(θ, T(eps), state.dE, -state.l, state.accept)
 end
 
 function Step(
@@ -144,7 +146,7 @@ function Step(
     eps = sampler.hyperparameters.eps
     Weps = T(1e-5)
     Feps = T(Weps * eps^(1 / 6))
-    state = MCHMCState{T}(rng, 0, x, u, l, g, T(0.0), Weps, Feps, h)
+    state = MCHMCState{T}(rng, 0, x, u, l, g, T(0.0), Weps, Feps, h, true)
     state = tune_hyperparameters(rng, sampler, state; kwargs...)
     transition = Transition(state, inv_transform)
     return transition, state
@@ -203,14 +205,14 @@ function Step(
 
 
 
-    state = MCHMCState(rng, state.i + 1, xx, uuu, ll, gg, dEE, Weps, Feps, state.h)
+    state = MCHMCState(rng, state.i + 1, xx, uuu, ll, gg, dEE, Weps, Feps, state.h, accept)
     transition = Transition(state, inv_transform)
     return transition, state
 end
 
 function _make_sample(transition::Transition; transform=NoTransform, include_latent=false)
     if include_latent
-        sample = [transition.θ[:]; transform(transition.θ)[:]; transition.ϵ; transition.δE; transition.ℓ]
+        sample = [transition.θ[:]; transform(transition.θ)[:]; transition.ϵ; transition.δE; transition.ℓ; transition.accept]
     else
         sample = [transition.θ[:]; transition.ϵ; transition.δE; transition.ℓ]
     end
@@ -303,7 +305,8 @@ function Sample(
             end
             ProgressMeter.next!(pbar, showvalues = [
                 ("ϵ", sampler.hyperparameters.eps),
-                ("dE/d", state.dE / target.d)
+                ("dE/d", state.dE / target.d),
+                ("accept", state.accept)
             ])
         end
     end
