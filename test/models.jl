@@ -33,7 +33,7 @@
         a=T(1.0)
         b=T(10.0)
         target = RosenbrockTarget(a, b, d)
-        spl = MCHMC(10_000, 0.01;
+        spl = MCHMC(50_000, 0.01;
         L = sqrt(2), sigma = ones(target.d),
         tune_L = false, tune_sigma = false, adaptive = true)
         samples = Sample(spl, target, 200_000; dialog = true)

@@ -2,7 +2,7 @@
 
 julia_version = "1.10.3"
 manifest_format = "2.0"
-project_hash = "b59ba2814201791b63f7eaa8b2b7f222e4b29676"
+project_hash = "5177bbf03a4a71a85df496c00cbc72a2f68848a4"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "daf26bbdec60d9ca1c0003b70f389d821ddb4224"
@@ -473,9 +473,9 @@ version = "0.6.8"
 
 [[deps.DynamicPPL]]
 deps = ["ADTypes", "AbstractMCMC", "AbstractPPL", "Accessors", "BangBang", "Bijectors", "Compat", "ConstructionBase", "Distributions", "DocStringExtensions", "LinearAlgebra", "LogDensityProblems", "LogDensityProblemsAD", "MacroTools", "OrderedCollections", "Random", "Requires", "Test"]
-git-tree-sha1 = "882510df0da64bae763a65240b07fb4b1c462317"
+git-tree-sha1 = "c19523087706fe315f297252f54f3f6a2ae7ce85"
 uuid = "366bfd00-2699-11ea-058f-f148b4cae6d8"
-version = "0.27.1"
+version = "0.27.2"
 
     [deps.DynamicPPL.extensions]
     DynamicPPLChainRulesCoreExt = ["ChainRulesCore"]
