@@ -59,18 +59,12 @@ function TuringTarget(model; kwargs...)
     vi = DynamicPPL.VarInfo(model, ctxt)
     vi_t = Turing.link!!(vi, model)
     θ_start = vi[DynamicPPL.SampleFromPrior()]
-    dists = _get_dists(vi)
+    mds = values(vi.metadata)
+    dists =  [md.dists[1] for md in mds]
     dist_lengths = [length(dist) for dist in dists]
-    θ_names = _name_variables(vi, dist_lengths)
-    d = length(θ_names)
     ℓ = LogDensityProblemsAD.ADgradient(DynamicPPL.LogDensityFunction(vi_t, model, ctxt))
     ℓπ(x) = LogDensityProblems.logdensity(ℓ, x)
     ∂lπ∂θ(x) = LogDensityProblems.logdensity_and_gradient(ℓ, x)
-
-    function _get_dists(vi)
-        mds = values(vi.metadata)
-        return [md.dists[1] for md in mds]
-    end
     
     function _reshape_params(x::AbstractVector)
         xx = []
@@ -94,8 +88,24 @@ function TuringTarget(model; kwargs...)
         return vcat(x...)
     end
 
+    
+    function _name_variables(vi, dist_lengths)
+        vsyms = keys(vi)
+        names = []
+        for (vsym, dist_length) in zip(vsyms, dist_lengths)
+            if dist_length == 1
+                name = [string(vsym)]
+                append!(names, name)
+            else
+                name = [string(vsym, i) for i = 1:dist_length]
+                append!(names, name)
+            end
+        end
+        return Vector{String}(names)
+    end
+
     return CustomTarget(ℓπ, ∂lπ∂θ, θ_start;
         transform=transform, 
         inv_transform=inv_transform, 
-        θ_names=θ_names)
+        θ_names=_name_variables(vi, dist_lengths))
 end
