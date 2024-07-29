@@ -6,7 +6,7 @@ using LinearAlgebra, Statistics, Adapt, Random, HDF5,
     Distributions, ProgressMeter, Markdown
 
 export Settings, MCHMC, Sample, Step, Summarize,
-    TuringTarget, GaussianTarget, RosenbrockTarget, CustomTarget
+    TuringTarget, RosenbrockTarget, CustomTarget
 
 include("hamiltonian.jl")
 include("targets.jl")
