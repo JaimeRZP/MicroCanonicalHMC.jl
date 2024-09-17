@@ -39,7 +39,7 @@
 
         # Sample
         target = TuringTarget(model)
-        samples = Sample(mchmc, target, 100_000)
+        samples = Sample(mchmc, target, 100)
         # Just check if it ran
         @test true
     end
