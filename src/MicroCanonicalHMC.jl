@@ -3,7 +3,7 @@ module MicroCanonicalHMC
 using LinearAlgebra, Statistics, Adapt, Random, HDF5,
     LogDensityProblemsAD, LogDensityProblems, ForwardDiff,
     AbstractMCMC, MCMCChains, MCMCDiagnosticTools,
-    Distributions, ProgressMeter, Markdown
+    Distributions, ProgressMeter, Markdown, DynamicPPL, Turing
 
 export Settings, MCHMC, Sample, Step, Summarize,
     TuringTarget, RosenbrockTarget, CustomTarget
