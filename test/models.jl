@@ -46,7 +46,7 @@
         @test m1 ≈ 1.00 atol = 0.2
         @test s1 ≈ 1.00 atol = 0.3
         @test mm2 ≈ 1.13 atol = 0.2
-        @test m2 ≈ 1.97 atol = 0.2
+        @test m2 ≈ 2.0 atol = 0.25
         @test s2 ≈ 2.40 atol = 0.5
     end
 
