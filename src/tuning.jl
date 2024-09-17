@@ -85,7 +85,7 @@ function tune_hyperparameters(
             if sampler.tune_L
                 ess, _ = Summarize(xs)
                 m_ess = mean(ess)
-                if m_ess > 5.0
+                if m_ess > length(xs)/50
                     l = length(xs)/m_ess
                     eps = sampler.hyperparameters.eps
                     sampler.hyperparameters.L = 0.4*eps*l
