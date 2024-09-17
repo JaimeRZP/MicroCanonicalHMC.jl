@@ -85,9 +85,15 @@ function tune_hyperparameters(
             if sampler.tune_L
                 ess, _ = Summarize(xs)
                 m_ess = mean(ess)
-                l = length(xs)/m_ess
-                eps = sampler.hyperparameters.eps
-                sampler.hyperparameters.L = 0.4*eps*l
+                if m_ess > 5.0
+                    l = length(xs)/m_ess
+                    eps = sampler.hyperparameters.eps
+                    sampler.hyperparameters.L = 0.4*eps*l
+                else
+                    @warn "Effective sample size is too low, using sigma to tune L"
+                    sampler.hyperparameters.L =
+                        sqrt(mean(sigma .^ 2)) * sampler.hyperparameters.eps
+                end
             end
         end
         ProgressMeter.next!(pbar, showvalues = [
