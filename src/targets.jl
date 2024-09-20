@@ -53,3 +53,59 @@ function RosenbrockTarget(a::T, b::T, d::Int;
         inv_transform=inv_transform,
         kwargs...)
 end
+
+function TuringTarget(model; kwargs...)
+    ctxt = model.context
+    vi = DynamicPPL.VarInfo(model, ctxt)
+    vi_t = Turing.link!!(vi, model)
+    θ_start = vi[DynamicPPL.SampleFromPrior()]
+    mds = values(vi.metadata)
+    dists =  [md.dists[1] for md in mds]
+    dist_lengths = [length(dist) for dist in dists]
+    ℓ = LogDensityProblemsAD.ADgradient(DynamicPPL.LogDensityFunction(vi_t, model, ctxt))
+    ℓπ(x) = LogDensityProblems.logdensity(ℓ, x)
+    ∂lπ∂θ(x) = LogDensityProblems.logdensity_and_gradient(ℓ, x)
+    
+    function _reshape_params(x::AbstractVector)
+        xx = []
+        idx = 0
+        for dist_length in dist_lengths
+            append!(xx, [x[idx+1:idx+dist_length]])
+            idx += dist_length
+        end
+        return xx
+    end
+
+    function transform(x)
+        x = _reshape_params(x)
+        xt = [Bijectors.link(dist, par) for (dist, par) in zip(dists, x)]
+        return vcat(xt...)
+    end
+
+    function inv_transform(xt)
+        xt = _reshape_params(xt)
+        x = [Bijectors.invlink(dist, par) for (dist, par) in zip(dists, xt)]
+        return vcat(x...)
+    end
+
+    
+    function _name_variables(vi, dist_lengths)
+        vsyms = keys(vi)
+        names = []
+        for (vsym, dist_length) in zip(vsyms, dist_lengths)
+            if dist_length == 1
+                name = [string(vsym)]
+                append!(names, name)
+            else
+                name = [string(vsym, i) for i = 1:dist_length]
+                append!(names, name)
+            end
+        end
+        return Vector{String}(names)
+    end
+
+    return CustomTarget(ℓπ, ∂lπ∂θ, θ_start;
+        transform=transform, 
+        inv_transform=inv_transform, 
+        θ_names=_name_variables(vi, dist_lengths))
+end

@@ -72,7 +72,7 @@ function tune_hyperparameters(
 
     # Tuning
     xs = adapt(Array, state.x[:]) 
-    window = Int(sampler.nadapt / 100)
+    window = Int(sampler.nadapt / 10)
     pbar = Progress(sampler.nadapt; desc="Tuning: ")
     for i = 1:sampler.nadapt
         _, state = Step(rng, sampler, state; adaptive = sampler.tune_eps, kwargs...)
@@ -85,9 +85,15 @@ function tune_hyperparameters(
             if sampler.tune_L
                 ess, _ = Summarize(xs)
                 m_ess = mean(ess)
-                l = length(xs)/m_ess
-                eps = sampler.hyperparameters.eps
-                sampler.hyperparameters.L = 0.4*eps*l
+                if m_ess > length(xs)/50
+                    l = length(xs)/m_ess
+                    eps = sampler.hyperparameters.eps
+                    sampler.hyperparameters.L = 0.4*eps*l
+                else
+                    @warn "Effective sample size is too low, using sigma to tune L"
+                    sampler.hyperparameters.L =
+                        sqrt(mean(sigma .^ 2)) * sampler.hyperparameters.eps
+                end
             end
         end
         ProgressMeter.next!(pbar, showvalues = [
